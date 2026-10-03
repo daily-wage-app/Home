@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Wage App - Advanced</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #1e88e5;
+      --primary-light: #42a5f5;
+      --accent: #ff6b6b;
+      --success: #4caf50;
+      --warning: #ff9800;
+      --danger: #f44336;
+      --light: #f5f7ff;
+      --border: #e0e0e0;
+      --text: #1a1a1a;
+      --text-gray: #666;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: var(--light);
+      color: var(--text);
+    }
+
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    /* ============ HEADER ============ */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(30, 136, 229, 0.2);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .header-logo {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .header-icons {
+      display: flex;
+      gap: 12px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .search-container {
+      display: flex;
+      gap: 8px;
+    }
+
+    .search-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 50px;
+      padding: 10px 16px;
+      color: var(--text);
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 14px;
+      background: transparent;
+    }
+
+    .search-bar input::placeholder {
+      color: #999;
+    }
+
+    .search-icons {
+      display: flex;
+      gap: 8px;
+      color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* ============ MAIN CONTENT ============ */
+    .main-content {
+      padding: 12px;
+      overflow-y: auto;
+      padding-bottom: 80px;
+    }
+
+    /* ============ CARDS ============ */
+    .user-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .user-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: 700;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3);
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-phone {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .user-status {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-bottom: 4px;
+    }
+
+    .user-rating {
+      font-size: 12px;
+      color: #ffa500;
+    }
+
+    .user-action {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+
+    .user-action:hover {
+      background: var(--light);
+    }
+
+    /* ============ STATUS CARDS ============ */
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .status-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .status-label {
+      font-size: 12px;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      background: var(--light);
+      color: var(--primary);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .status-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), #8bc34a);
+      border-radius: 3px;
+    }
+
+    .progress-text {
+      font-size: 11px;
+      color: var(--text-gray);
+    }
+
+    /* ============ TABS ============ */
+    .tabs {
+      background: white;
+      border-radius: 12px;
+      padding: 8px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 10px 14px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-gray);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3);
+    }
+
+    /* ============ CONTENT PANELS ============ */
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ============ HOME PANEL ============ */
+    .earning-section {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .earning-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .earning-item {
+      background: var(--light);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .earning-label {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-bottom: 4px;
+    }
+
+    .earning-amount {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .job-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border-left: 4px solid var(--primary);
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .job-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .job-status {
+      background: #e8f5e9;
+      color: var(--success);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .job-details {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .job-detail {
+      font-size: 12px;
+      color: var(--text-gray);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .job-rate {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--success);
+      margin-bottom: 8px;
+    }
+
+    .job-action {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    .job-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+    }
+
+    /* ============ PROFILE PANEL ============ */
+    .profile-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(30, 136, 229, 0.2);
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 12px;
+      border: 3px solid white;
+    }
+
+    .profile-name {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .profile-status {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .profile-section {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .profile-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--light);
+    }
+
+    .profile-item:last-child {
+      border-bottom: none;
+    }
+
+    .profile-label {
+      font-size: 13px;
+      color: var(--text-gray);
+      font-weight: 500;
+    }
+
+    .profile-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .profile-edit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .profile-edit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+    }
+
+    /* ============ EARNINGS PANEL ============ */
+    .earnings-chart {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .chart-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+      height: 200px;
+      margin: 16px 0;
+    }
+
+    .chart-bar {
+      flex: 1;
+      background: linear-gradient(180deg, var(--primary), var(--primary-light));
+      border-radius: 8px 8px 0 0;
+      position: relative;
+      min-height: 10px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding-bottom: 4px;
+    }
+
+    .chart-label {
+      position: absolute;
+      bottom: -20px;
+      font-size: 10px;
+      color: var(--text-gray);
+    }
+
+    .earnings-list {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .earning-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--light);
+    }
+
+    .earning-row:last-child {
+      border-bottom: none;
+    }
+
+    .earning-info {
+      flex: 1;
+    }
+
+    .earning-job {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .earning-date {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-top: 2px;
+    }
+
+    .earning-amount-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    /* ============ JOBS PANEL ============ */
+    .job-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .job-item {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border-left: 4px solid var(--warning);
+    }
+
+    .job-item.completed {
+      border-left-color: var(--success);
+    }
+
+    .job-item.pending {
+      border-left-color: var(--warning);
+    }
+
+    /* ============ BOTTOM NAVIGATION ============ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 16px;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-gray);
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 20px;
+      flex: 1;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-label {
+      font-size: 10px;
+      color: inherit;
+      font-weight: 600;
+    }
+
+    /* ============ MODAL ============ */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .modal-btn.primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+    }
+
+    .modal-btn.secondary {
+      background: var(--light);
+      color: var(--text-gray);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 768px) {
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .earning-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-container {
+        height: 150px;
+      }
+
+      .search-container {
+        flex-direction: column;
+      }
+
+      .search-bar {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-top">
+        <div class="header-logo">📱 Daily Wage</div>
+        <div class="header-icons">
+          <span onclick="alert('Notifications')">🔔</span>
+          <span onclick="openModal('settings')">⚙️</span>
+        </div>
+      </div>
+      <div class="search-container">
+        <div class="search-bar">
+          <span>🔍</span>
+          <input type="text" placeholder="Search jobs" />
+          <div class="search-icons">
+            <span onclick="alert('Scan')">📸</span>
+            <span onclick="alert('Filter')">⚙️</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <!-- USER CARD -->
+      <div class="user-card">
+        <div class="user-avatar">DW</div>
+        <div class="user-info">
+          <div class="user-phone">+880-1234-5678</div>
+          <div class="user-status">Daily Wage Member</div>
+          <div class="user-rating">⭐ 4.8 (245 jobs)</div>
+        </div>
+        <button class="user-action" onclick="switchAccount()">Switch ID ></button>
+      </div>
+
+      <!-- STATUS CARDS -->
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="status-header">
+            <div class="status-label">Available Jobs</div>
+            <div class="status-badge">📍 Near</div>
+          </div>
+          <div class="status-value">24</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 78%"></div>
+          </div>
+          <div class="progress-text">Jobs within 5km</div>
+        </div>
+
+        <div class="status-card">
+          <div class="status-header">
+            <div class="status-label">Active Jobs</div>
+            <div class="status-badge">🔄 In Progress</div>
+          </div>
+          <div class="status-value">3</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 40%; background: linear-gradient(90deg, var(--warning), #ffb74d)"></div>
+          </div>
+          <div class="progress-text">Ongoing assignments</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('home', this)">🏠 Home</button>
+        <button class="tab-btn" onclick="switchTab('jobs', this)">📋 Jobs</button>
+        <button class="tab-btn" onclick="switchTab('earnings', this)">💰 Earnings</button>
+        <button class="tab-btn" onclick="switchTab('profile', this)">👤 Profile</button>
+      </div>
+
+      <!-- HOME PANEL -->
+      <div id="home" class="panel active">
+        <div class="earning-section">
+          <div class="section-title">💵 Today's Earnings</div>
+          <div class="earning-grid">
+            <div class="earning-item">
+              <div class="earning-label">Completed</div>
+              <div class="earning-amount">₹ 1,250</div>
+            </div>
+            <div class="earning-item">
+              <div class="earning-label">Pending</div>
+              <div class="earning-amount" style="color: var(--warning)">₹ 450</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="earning-section">
+          <div class="section-title">🎯 Recommended Jobs</div>
+          
+          <div class="job-card">
+            <div class="job-header">
+              <div class="job-title">Construction Site Work</div>
+              <div class="job-status">🟢 Available</div>
+            </div>
+            <div class="job-details">
+              <div class="job-detail">📍 Dhaka North</div>
+              <div class="job-detail">⏰ 8 hours</div>
+              <div class="job-detail">👥 2 workers needed</div>
+            </div>
+            <div class="job-rate">₹ 500/hour</div>
+            <button class="job-action" onclick="applyJob('Construction Site Work')">Apply Now</button>
+          </div>
+
+          <div class="job-card">
+            <div class="job-header">
+              <div class="job-title">Delivery & Courier Service</div>
+              <div class="job-status">🟢 Available</div>
+            </div>
+            <div class="job-details">
+              <div class="job-detail">📍 Dhaka Metro</div>
+              <div class="job-detail">⏰ 6 hours</div>
+              <div class="job-detail">👥 3 workers needed</div>
+            </div>
+            <div class="job-rate">₹ 400/hour</div>
+            <button class="job-action" onclick="applyJob('Delivery & Courier Service')">Apply Now</button>
+          </div>
+
+          <div class="job-card">
+            <div class="job-header">
+              <div class="job-title">Warehouse Packing</div>
+              <div class="job-status">🟢 Available</div>
+            </div>
+            <div class="job-details">
+              <div class="job-detail">📍 Dhaka South</div>
+              <div class="job-detail">⏰ 10 hours</div>
+              <div class="job-detail">👥 5 workers needed</div>
+            </div>
+            <div class="job-rate">₹ 350/hour</div>
+            <button class="job-action" onclick="applyJob('Warehouse Packing')">Apply Now</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- JOBS PANEL -->
+      <div id="jobs" class="panel">
+        <div class="earning-section">
+          <div class="section-title">📋 My Jobs</div>
+          
+          <div class="job-list">
+            <div class="job-item completed">
+              <div class="job-header">
+                <div class="job-title">Completed: Construction Work</div>
+                <div style="background: var(--success); color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">✓ Completed</div>
+              </div>
+              <div class="job-details">
+                <div class="job-detail">📅 Oct 1, 2026</div>
+                <div class="job-detail">⏰ 8 hours</div>
+              </div>
+              <div class="job-rate">₹ 4,000 Earned</div>
+            </div>
+
+            <div class="job-item completed">
+              <div class="job-header">
+                <div class="job-title">Completed: Delivery Service</div>
+                <div style="background: var(--success); color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">✓ Completed</div>
+              </div>
+              <div class="job-details">
+                <div class="job-detail">📅 Sep 28, 2026</div>
+                <div class="job-detail">⏰ 6 hours</div>
+              </div>
+              <div class="job-rate">₹ 2,400 Earned</div>
+            </div>
+
+            <div class="job-item pending">
+              <div class="job-header">
+                <div class="job-title">Pending: Warehouse Work</div>
+                <div style="background: var(--warning); color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">⏳ In Progress</div>
+              </div>
+              <div class="job-details">
+                <div class="job-detail">📅 Today</div>
+                <div class="job-detail">⏰ 10 hours</div>
+              </div>
+              <div class="job-rate">₹ 3,500 Expected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EARNINGS PANEL -->
+      <div id="earnings" class="panel">
+        <div class="earnings-chart">
+          <div class="section-title">📊 Weekly Earnings</div>
+          <div class="chart-container">
+            <div style="flex: 1;">
+              <div class="chart-bar" style="height: 60%;">
+                <span>₹2.5k</span>
+                <div class="chart-label">Mon</div>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div class="chart-bar" style="height: 85%;">
+                <span>₹3.4k</span>
+                <div class="chart-label">Tue</div>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div class="chart-bar" style="height: 45%;">
+                <span>₹1.8k</span>
+                <div class="chart-label">Wed</div>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div class="chart-bar" style="height: 75%;">
+                <span>₹3k</span>
+                <div class="chart-label">Thu</div>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div class="chart-bar" style="height: 95%;">
+                <span>₹3.8k</span>
+                <div class="chart-label">Fri</div>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div class="chart-bar" style="height: 70%;">
+                <span>₹2.8k</span>
+                <div class="chart-label">Sat</div>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div class="chart-bar" style="height: 55%;">
+                <span>₹2.2k</span>
+                <div class="chart-label">Sun</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="earnings-list">
+          <div class="section-title">💳 Payment History</div>
+          
+          <div class="earning-row">
+            <div class="earning-info">
+              <div class="earning-job">Construction Work</div>
+              <div class="earning-date">Oct 1, 2026 • 8 hours</div>
+            </div>
+            <div class="earning-amount-value">+ ₹ 4,000</div>
+          </div>
+
+          <div class="earning-row">
+            <div class="earning-info">
+              <div class="earning-job">Delivery Service</div>
+              <div class="earning-date">Sep 28, 2026 • 6 hours</div>
+            </div>
+            <div class="earning-amount-value">+ ₹ 2,400</div>
+          </div>
+
+          <div class="earning-row">
+            <div class="earning-info">
+              <div class="earning-job">Office Cleaning</div>
+              <div class="earning-date">Sep 25, 2026 • 4 hours</div>
+            </div>
+            <div class="earning-amount-value">+ ₹ 1,600</div>
+          </div>
+
+          <div class="earning-row">
+            <div class="earning-info">
+              <div class="earning-job">Warehouse Packing</div>
+              <div class="earning-date">Sep 22, 2026 • 10 hours</div>
+            </div>
+            <div class="earning-amount-value">+ ₹ 3,500</div>
+          </div>
+
+          <div class="earning-row">
+            <div class="earning-info">
+              <div class="earning-job">Moving Service</div>
+              <div class="earning-date">Sep 20, 2026 • 5 hours</div>
+            </div>
+            <div class="earning-amount-value">+ ₹ 2,000</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE PANEL -->
+      <div id="profile" class="panel">
+        <div class="profile-header">
+          <div class="profile-avatar">👤</div>
+          <div class="profile-name">Daily Wage Worker</div>
+          <div class="profile-status">⭐ 4.8 Rating • 245 Jobs Completed</div>
+        </div>
+
+        <div class="profile-section">
+          <div class="section-title">📋 Personal Information</div>
+          
+          <div class="profile-item">
+            <div class="profile-label">Full Name</div>
+            <div class="profile-value">Mr. Worker</div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Email</div>
+            <div class="profile-value">worker@dailywage.app</div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Location</div>
+            <div class="profile-value">Dhaka, Bangladesh</div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Member Since</div>
+            <div class="profile-value">Jan 2024</div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Bank Account</div>
+            <div class="profile-value">XXXX-XXXX-5678</div>
+          </div>
+
+          <button class="profile-edit-btn" onclick="openModal('editProfile')">✏️ Edit Profile</button>
+        </div>
+
+        <div class="profile-section">
+          <div class="section-title">🔒 Credentials & Security</div>
+          
+          <div class="profile-item">
+            <div class="profile-label">Password</div>
+            <div class="profile-value">••••••••</div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Two-Factor Auth</div>
+            <div class="profile-value" style="color: var(--success);">Enabled ✓</div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Last Login</div>
+            <div class="profile-value">Today, 2:30 PM</div>
+          </div>
+
+          <button class="profile-edit-btn" onclick="openModal('security')" style="background: var(--danger);">🔐 Change Password</button>
+        </div>
+
+        <div class="profile-section">
+          <div class="section-title">⚙️ Account Settings</div>
+          
+          <div class="profile-item">
+            <div class="profile-label">Notifications</div>
+            <div style="cursor: pointer;" onclick="alert('Notifications toggled')">✓ Enabled</div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Language</div>
+            <div class="profile-value">English</div>
+          </div>
+
+          <div class="profile-item">
+            <div class="profile-label">Currency</div>
+            <div class="profile-value">BDT (₹)</div>
+          </div>
+
+          <button class="profile-edit-btn" onclick="alert('Logged out')" style="background: #6c757d;">🚪 Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchTab('home'); updateNav(0)">
+        <span>🏠</span>
+        <span class="nav-label">Home</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('jobs'); updateNav(1)">
+        <span>📦</span>
+        <span class="nav-label">Jobs</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('earnings'); updateNav(2)">
+        <span>💰</span>
+        <span class="nav-label">Earnings</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('profile'); updateNav(3)">
+        <span>👤</span>
+        <span class="nav-label">Profile</span>
+      </div>
+      <div class="nav-item" onclick="openModal('more')">
+        <span>⋮</span>
+        <span class="nav-label">More</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div id="editProfileModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">Edit Profile</div>
+      
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" value="Mr. Worker" />
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" value="worker@dailywage.app" />
+      </div>
+
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" value="Dhaka, Bangladesh" />
+      </div>
+
+      <div class="modal-buttons">
+        <button class="modal-btn primary" onclick="saveProfile()">💾 Save Changes</button>
+        <button class="modal-btn secondary" onclick="closeModal('editProfile')">❌ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tabName, element) {
+      // Hide all panels
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+
+      // Update tab buttons
+      if (element) {
+        document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+        element.classList.add('active');
+      }
+    }
+
+    function updateNav(index) {
+      document.querySelectorAll('.nav-item').forEach((item, i) => {
+        item.classList.toggle('active', i === index);
+      });
+    }
+
+    function switchAccount() {
+      alert('🔄 Switch Account - Coming Soon!');
+    }
+
+    function applyJob(jobName) {
+      alert(`✅ Applied for: ${jobName}\n\nYou will receive updates about this job shortly.`);
+    }
+
+    function openModal(type) {
+      if (type === 'editProfile') {
+        document.getElementById('editProfileModal').classList.add('show');
+      } else if (type === 'settings') {
+        alert('⚙️ Settings - Coming Soon!');
+      } else if (type === 'more') {
+        alert('📋 More Options:\n• Help & Support\n• Report Issue\n• About App\n• Terms & Conditions');
+      }
+    }
+
+    function closeModal(type) {
+      if (type === 'editProfile') {
+        document.getElementById('editProfileModal').classList.remove('show');
+      }
+    }
+
+    function saveProfile() {
+      alert('✅ Profile updated successfully!');
+      closeModal('editProfile');
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('show');
+      }
+    });
+  </script>
+</body>
+</html>
