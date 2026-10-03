@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Wage - Financial Tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #1e88e5;
+      --primary-light: #42a5f5;
+      --accent: #ff6b6b;
+      --success: #4caf50;
+      --warning: #ff9800;
+      --danger: #f44336;
+      --light: #f5f7ff;
+      --border: #e0e0e0;
+      --text: #1a1a1a;
+      --text-gray: #666;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: #f5f5f5;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .app-wrapper {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* ============ MAIN CONTENT ============ */
+    .main-app {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ============ STATUS BAR ============ */
+    .status-bar {
+      background: #333;
+      color: white;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-time {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .status-icons {
+      display: flex;
+      gap: 4px;
+      font-size: 14px;
+    }
+
+    /* ============ HEADER ============ */
+    .header {
+      background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 50%, #6c5b7b 100%);
+      color: white;
+      padding: 20px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(to right, rgba(255, 107, 157, 0.3), rgba(192, 108, 132, 0.3));
+    }
+
+    .header-content {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-icon {
+      font-size: 60px;
+    }
+
+    .header-text h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .header-text p {
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .header-menu-btn {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .header-menu-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* ============ MAIN CONTENT ============ */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      padding-bottom: 80px;
+    }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    /* ============ HOME SECTION ============ */
+    .home-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .card-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-gray);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .info-item {
+      background: var(--light);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .info-label {
+      font-size: 11px;
+      color: var(--text-gray);
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* ============ CALENDAR SECTION ============ */
+    .calendar-container {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .calendar-nav {
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .calendar-day-header {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-gray);
+      padding: 8px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: var(--light);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .calendar-day:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .calendar-day.today {
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+    }
+
+    /* ============ UPDATE SECTION ============ */
+    .update-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .update-item {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border-left: 4px solid var(--warning);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .update-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .update-content h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .update-content p {
+      font-size: 12px;
+      color: var(--text-gray);
+      line-height: 1.4;
+    }
+
+    /* ============ CATEGORY SECTION ============ */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .category-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-top: 4px solid var(--primary);
+    }
+
+    .category-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .category-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .category-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ============ BOTTOM NAVIGATION ============ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding: 12px 0;
+      max-width: calc(100% - 240px);
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-gray);
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 20px;
+      flex: 1;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-label {
+      font-size: 9px;
+      color: inherit;
+      font-weight: 600;
+    }
+
+    /* ============ SIDE MENU ============ */
+    .side-menu {
+      width: 0;
+      background: #f9f9f9;
+      overflow-y: auto;
+      transition: width 0.3s ease;
+      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+      z-index: 200;
+    }
+
+    .side-menu.open {
+      width: 240px;
+    }
+
+    .menu-header {
+      background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 100%);
+      color: white;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .menu-close {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .menu-items {
+      padding: 8px 0;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 16px;
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: #f0f0f0;
+      border-left-color: var(--primary);
+    }
+
+    .menu-item.active {
+      background: #e3f2fd;
+      border-left-color: var(--primary);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .menu-icon {
+      font-size: 24px;
+      min-width: 24px;
+    }
+
+    .menu-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0);
+      z-index: 150;
+    }
+
+    .overlay.show {
+      display: block;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 768px) {
+      .status-bar {
+        font-size: 11px;
+      }
+
+      .header-text h1 {
+        font-size: 22px;
+      }
+
+      .category-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bottom-nav {
+        max-width: 100%;
+        gap: 12px;
+      }
+    }
+
+    /* ============ SCROLLBAR ============ */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ddd;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- MAIN APP -->
+    <div class="main-app">
+      <!-- STATUS BAR -->
+      <div class="status-bar">
+        <span class="status-time">0️⃣:0️⃣0️⃣</span>
+        <div class="status-icons">
+          <span>📶 📶 🔋 80</span>
+        </div>
+      </div>
+
+      <!-- HEADER -->
+      <div class="header">
+        <div class="header-content">
+          <div class="header-icon">💰</div>
+          <div class="header-text">
+            <h1>Daily Wage</h1>
+            <p>Your Financial Tracker</p>
+          </div>
+        </div>
+        <button class="header-menu-btn" onclick="toggleMenu()">⋮</button>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="content">
+        <!-- HOME SECTION -->
+        <div id="home" class="content-section active">
+          <div class="home-card">
+            <div class="card-title">💵 Total Earnings</div>
+            <div class="card-value">₹ 15,250</div>
+            <div class="card-subtitle">This Month</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Today</div>
+                <div class="info-value">₹ 1,250</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">This Week</div>
+                <div class="info-value">₹ 5,800</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-card">
+            <div class="card-title">📊 Active Jobs</div>
+            <div class="card-value">7</div>
+            <div class="card-subtitle">Ongoing Assignments</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Completed</div>
+                <div class="info-value">245</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Rating</div>
+                <div class="info-value">⭐ 4.8</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-card">
+            <div class="card-title">💳 Account Balance</div>
+            <div class="card-value">₹ 8,450</div>
+            <div class="card-subtitle">Available for withdrawal</div>
+          </div>
+        </div>
+
+        <!-- CALENDAR SECTION -->
+        <div id="calendar" class="content-section">
+          <div class="calendar-container">
+            <div class="calendar-header">
+              <button class="calendar-nav" onclick="prevMonth()">◀</button>
+              <h2 id="monthYear" style="font-size: 16px;">October 2026</h2>
+              <button class="calendar-nav" onclick="nextMonth()">▶</button>
+            </div>
+            <div class="calendar-grid">
+              <div class="calendar-day-header">Sun</div>
+              <div class="calendar-day-header">Mon</div>
+              <div class="calendar-day-header">Tue</div>
+              <div class="calendar-day-header">Wed</div>
+              <div class="calendar-day-header">Thu</div>
+              <div class="calendar-day-header">Fri</div>
+              <div class="calendar-day-header">Sat</div>
+              <div id="calendarDays"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- UPDATE SECTION -->
+        <div id="update" class="content-section">
+          <div class="update-list">
+            <div class="update-item">
+              <div class="update-icon">🔔</div>
+              <div class="update-content">
+                <h3>New Version Available</h3>
+                <p>Daily Wage v2.5 is now available with improved performance and new features.</p>
+              </div>
+            </div>
+
+            <div class="update-item" style="border-left-color: var(--success);">
+              <div class="update-icon">✅</div>
+              <div class="update-content">
+                <h3>Payment Completed</h3>
+                <p>₹ 5,250 has been successfully transferred to your account.</p>
+              </div>
+            </div>
+
+            <div class="update-item" style="border-left-color: var(--danger);">
+              <div class="update-icon">⚠️</div>
+              <div class="update-content">
+                <h3>Job Cancelled</h3>
+                <p>The warehouse job scheduled for Oct 5 has been cancelled. You've been refunded.</p>
+              </div>
+            </div>
+
+            <div class="update-item" style="border-left-color: var(--primary);">
+              <div class="update-icon">📢</div>
+              <div class="update-content">
+                <h3>New Job Opportunities</h3>
+                <p>5 new high-paying jobs are available in your area. Check them now!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- APK STORE SECTION -->
+        <div id="apkstore" class="content-section">
+          <div class="category-grid">
+            <div class="category-card" onclick="alert('Opening Playstore')">
+              <div class="category-icon">📱</div>
+              <div class="category-name">Google Play Store</div>
+            </div>
+
+            <div class="category-card" onclick="alert('Opening Alternative Store')">
+              <div class="category-icon">🔲</div>
+              <div class="category-name">APK Store</div>
+            </div>
+
+            <div class="category-card" onclick="alert('Downloading APK')">
+              <div class="category-icon">⬇️</div>
+              <div class="category-name">Direct APK Download</div>
+            </div>
+
+            <div class="category-card" onclick="alert('Checking version')">
+              <div class="category-icon">📦</div>
+              <div class="category-name">Check Latest Version</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SHARES SECTION -->
+        <div id="shares" class="content-section">
+          <div class="category-grid">
+            <div class="category-card" onclick="shareToWhatsApp()">
+              <div class="category-icon">💚</div>
+              <div class="category-name">WhatsApp</div>
+            </div>
+
+            <div class="category-card" onclick="shareToFacebook()">
+              <div class="category-icon">💙</div>
+              <div class="category-name">Facebook</div>
+            </div>
+
+            <div class="category-card" onclick="shareToViber()">
+              <div class="category-icon">💜</div>
+              <div class="category-name">Viber</div>
+            </div>
+
+            <div class="category-card" onclick="copyLink()">
+              <div class="category-icon">🔗</div>
+              <div class="category-name">Copy Link</div>
+            </div>
+
+            <div class="category-card" onclick="shareToTelegram()">
+              <div class="category-icon">🔵</div>
+              <div class="category-name">Telegram</div>
+            </div>
+
+            <div class="category-card" onclick="shareMore()">
+              <div class="category-icon">⋯</div>
+              <div class="category-name">More Options</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BATTLE WAGE SECTION -->
+        <div id="battlewage" class="content-section">
+          <div class="home-card">
+            <div class="card-title">🎮 Battle Wage - Leaderboard</div>
+            <div style="font-size: 12px; color: var(--text-gray); margin-top: 12px;">
+              <div style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+                <div style="font-weight: 700; color: var(--text);">🥇 1st - Player One</div>
+                <div>₹ 50,000 | 150 Jobs</div>
+              </div>
+              <div style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+                <div style="font-weight: 700; color: var(--text);">🥈 2nd - Player Two</div>
+                <div>₹ 45,000 | 140 Jobs</div>
+              </div>
+              <div style="padding: 8px 0;">
+                <div style="font-weight: 700; color: var(--text);">🥉 3rd - You</div>
+                <div>₹ 15,250 | 7 Jobs</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REFERENCE SECTION -->
+        <div id="reference" class="content-section">
+          <div class="home-card">
+            <div class="card-title">🎁 Referral Program</div>
+            <div class="card-value">₹ 5,000</div>
+            <div class="card-subtitle">Earn by Referring Friends</div>
+          </div>
+
+          <div class="home-card">
+            <div class="card-title">📝 Your Referral Code</div>
+            <div style="background: var(--light); padding: 12px; border-radius: 8px; text-align: center; font-family: monospace; font-weight: 700; color: var(--primary); margin: 12px 0;">
+              DW2024REFER123
+            </div>
+            <button onclick="copyReferralCode()" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 12px;">
+              📋 Copy Code
+            </button>
+          </div>
+        </div>
+
+        <!-- SETTINGS SECTION -->
+        <div id="settings" class="content-section">
+          <div class="category-grid">
+            <div class="category-card" onclick="alert('Language Settings')">
+              <div class="category-icon">🌐</div>
+              <div class="category-name">Language</div>
+            </div>
+
+            <div class="category-card" onclick="alert('Notification Settings')">
+              <div class="category-icon">🔔</div>
+              <div class="category-name">Notifications</div>
+            </div>
+
+            <div class="category-card" onclick="alert('Privacy Settings')">
+              <div class="category-icon">🔒</div>
+              <div class="category-name">Privacy</div>
+            </div>
+
+            <div class="category-card" onclick="alert('Help & Support')">
+              <div class="category-icon">❓</div>
+              <div class="category-name">Help & Support</div>
+            </div>
+
+            <div class="category-card" onclick="alert('About App')">
+              <div class="category-icon">ℹ️</div>
+              <div class="category-name">About</div>
+            </div>
+
+            <div class="category-card" onclick="logout()" style="border-top-color: var(--danger);">
+              <div class="category-icon">🚪</div>
+              <div class="category-name">Logout</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM NAVIGATION -->
+      <div class="bottom-nav">
+        <div class="nav-item active" onclick="selectNav('home', this)">
+          <span>🏠</span>
+          <span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" onclick="selectNav('jobs', this)">
+          <span>📦</span>
+          <span class="nav-label">Jobs</span>
+        </div>
+        <div class="nav-item" onclick="selectNav('earnings', this)">
+          <span>💰</span>
+          <span class="nav-label">Earnings</span>
+        </div>
+        <div class="nav-item" onclick="selectNav('profile', this)">
+          <span>👤</span>
+          <span class="nav-label">Profile</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+    <!-- SIDE MENU -->
+    <div class="side-menu" id="sideMenu">
+      <div class="menu-header">
+        Daily Wage
+        <button class="menu-close" onclick="closeMenu()">✕</button>
+      </div>
+      <div class="menu-items">
+        <div class="menu-item active" onclick="switchSection('home')">
+          <div class="menu-icon">🏠</div>
+          <div class="menu-text">Home</div>
+        </div>
+        <div class="menu-item" onclick="switchSection('calendar')">
+          <div class="menu-icon">📅</div>
+          <div class="menu-text">Calendar</div>
+        </div>
+        <div class="menu-item" onclick="switchSection('update')">
+          <div class="menu-icon">📥</div>
+          <div class="menu-text">Update</div>
+        </div>
+        <div class="menu-item" onclick="switchSection('apkstore')">
+          <div class="menu-icon">🌐</div>
+          <div class="menu-text">Apk Store</div>
+        </div>
+        <div class="menu-item" onclick="switchSection('shares')">
+          <div class="menu-icon">📤</div>
+          <div class="menu-text">Shares</div>
+        </div>
+        <div class="menu-item" onclick="switchSection('battlewage')">
+          <div class="menu-icon">🎮</div>
+          <div class="menu-text">Battle wage</div>
+        </div>
+        <div class="menu-item" onclick="switchSection('reference')">
+          <div class="menu-icon">🌾</div>
+          <div class="menu-text">အရည်အချင်း</div>
+        </div>
+        <div class="menu-item" onclick="switchSection('settings')">
+          <div class="menu-icon">⚙️</div>
+          <div class="menu-text">ချိန်ခွင်</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentMonth = new Date();
+
+    function toggleMenu() {
+      const menu = document.getElementById('sideMenu');
+      const overlay = document.getElementById('overlay');
+      menu.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function closeMenu() {
+      document.getElementById('sideMenu').classList.remove('open');
+      document.getElementById('overlay').classList.remove('show');
+    }
+
+    function switchSection(sectionId) {
+      // Hide all sections
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Show selected section
+      document.getElementById(sectionId).classList.add('active');
+
+      // Update menu items
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.closest('.menu-item').classList.add('active');
+
+      closeMenu();
+    }
+
+    function selectNav(sectionId) {
+      // Hide all sections
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Show selected section
+      document.getElementById(sectionId).classList.add('active');
+
+      // Update nav items
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.closest('.nav-item').classList.add('active');
+    }
+
+    function renderCalendar() {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+
+      document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let html = '';
+      for (let i = 0; i < firstDay; i++) {
+        html += '<div class="calendar-day" style="color: transparent;"></div>';
+      }
+
+      const today = new Date();
+      for (let i = 1; i <= daysInMonth; i++) {
+        const isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+        html += `<div class="calendar-day ${isToday ? 'today' : ''}">${i}</div>`;
+      }
+
+      document.getElementById('calendarDays').innerHTML = html;
+    }
+
+    function prevMonth() {
+      currentMonth.setMonth(currentMonth.getMonth() - 1);
+      renderCalendar();
+    }
+
+    function nextMonth() {
+      currentMonth.setMonth(currentMonth.getMonth() + 1);
+      renderCalendar();
+    }
+
+    function shareToWhatsApp() {
+      alert('Opening WhatsApp...\n\n💬 Share Daily Wage app and earn referral bonus!');
+    }
+
+    function shareToFacebook() {
+      alert('Opening Facebook...\n\n📘 Sharing on Facebook');
+    }
+
+    function shareToViber() {
+      alert('Opening Viber...\n\n📞 Sharing on Viber');
+    }
+
+    function shareToTelegram() {
+      alert('Opening Telegram...\n\n✈️ Sharing on Telegram');
+    }
+
+    function copyLink() {
+      alert('✅ Link copied to clipboard!\n\nhttps://dailywage.app/ref/DW2024REFER123');
+    }
+
+    function shareMore() {
+      alert('📤 More sharing options:\n• SMS\n• Email\n• Other Apps');
+    }
+
+    function copyReferralCode() {
+      alert('✅ Referral Code Copied!\n\nDW2024REFER123');
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        alert('👋 You have been logged out successfully!');
+      }
+    }
+
+    // Initialize calendar
+    renderCalendar();
+  </script>
+</body>
+</html>
