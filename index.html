@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily Wage App - Home</title>
+  <!-- Set this to the HTTPS API endpoint owned by the separate data/analytics service. -->
+  <meta name="user-data-endpoint" content="" />
   <style>
     * {
       box-sizing: border-box;
@@ -415,6 +417,258 @@
       padding-bottom: 80px;
     }
 
+    /* ============ FIRST-ENTRY PROFILE ============ */
+    body.profile-modal-open {
+      overflow: hidden;
+    }
+
+    .profile-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(13, 31, 55, 0.58);
+      backdrop-filter: blur(5px);
+    }
+
+    .profile-backdrop.is-open {
+      display: flex;
+    }
+
+    .profile-modal {
+      width: min(100%, 560px);
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 24px 70px rgba(11, 36, 66, 0.28);
+      animation: profileModalIn 0.24s ease-out;
+    }
+
+    @keyframes profileModalIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .profile-modal-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .profile-modal-icon {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+      border-radius: 14px;
+      background: #e3f2fd;
+      font-size: 23px;
+    }
+
+    .profile-kicker {
+      margin-bottom: 3px;
+      color: #1e88e5;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .profile-modal h1 {
+      color: #1a1a1a;
+      font-size: 23px;
+      line-height: 1.2;
+    }
+
+    .profile-intro,
+    .profile-helper {
+      color: #666;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .profile-intro {
+      margin: 0 0 20px 56px;
+    }
+
+    .profile-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .profile-field,
+    .profile-fieldset {
+      min-width: 0;
+      border: 0;
+      padding: 0;
+    }
+
+    .profile-field label,
+    .profile-fieldset legend {
+      display: block;
+      margin-bottom: 7px;
+      color: #333;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-field input,
+    .profile-field select {
+      width: 100%;
+      border: 1px solid #dce3ea;
+      border-radius: 10px;
+      padding: 11px 12px;
+      background: #fff;
+      color: #1a1a1a;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .profile-field input:focus,
+    .profile-field select:focus {
+      border-color: #1e88e5;
+      box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.14);
+    }
+
+    .profile-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .profile-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      border: 1px solid #dce3ea;
+      border-radius: 10px;
+      padding: 9px 10px;
+      color: #444;
+      cursor: pointer;
+      font-size: 12px;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .profile-option:focus-within,
+    .profile-option:has(input:checked) {
+      border-color: #1e88e5;
+      background: #f0f8ff;
+      color: #1268ae;
+    }
+
+    .profile-option input {
+      accent-color: #1e88e5;
+    }
+
+    .profile-consent {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      border-radius: 10px;
+      padding: 11px;
+      background: #f7f9fc;
+      color: #555;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .profile-consent input {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      margin-top: 1px;
+      accent-color: #1e88e5;
+    }
+
+    .profile-error {
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fff1f0;
+      color: #c62828;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .profile-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .profile-submit,
+    .profile-cancel {
+      flex: 1;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .profile-submit {
+      background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%);
+      color: #fff;
+      box-shadow: 0 5px 12px rgba(30, 136, 229, 0.25);
+    }
+
+    .profile-submit:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .profile-cancel {
+      background: #eef3f8;
+      color: #566575;
+    }
+
+    .profile-helper {
+      margin: 0;
+      font-size: 11px;
+    }
+
+    .profile-toast {
+      position: fixed;
+      right: 16px;
+      bottom: 84px;
+      z-index: 1100;
+      max-width: min(360px, calc(100vw - 32px));
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #19324d;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(12, 35, 60, 0.22);
+      font-size: 13px;
+      line-height: 1.4;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .profile-toast.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     @media (max-width: 480px) {
       .header {
         padding: 16px 12px;
@@ -428,10 +682,104 @@
       .offer-card {
         flex: 0 0 240px;
       }
+
+      .profile-modal {
+        border-radius: 18px;
+        padding: 20px;
+      }
+
+      .profile-intro {
+        margin-left: 0;
+      }
+
+      .profile-grid,
+      .profile-options {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-actions {
+        flex-direction: column-reverse;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- First-entry profile collection. The form posts only to the configured HTTPS API endpoint. -->
+  <div class="profile-backdrop" id="profileBackdrop">
+    <section class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" aria-describedby="profileModalIntro">
+      <div class="profile-modal-header">
+        <div class="profile-modal-icon" aria-hidden="true">👋</div>
+        <div>
+          <div class="profile-kicker">Daily Wage setup</div>
+          <h1 id="profileModalTitle">Tell us about you</h1>
+        </div>
+      </div>
+      <p class="profile-intro" id="profileModalIntro">Complete your profile before using the app. Required fields are marked with an asterisk.</p>
+
+      <form class="profile-form" id="userProfileForm" novalidate>
+        <div class="profile-grid">
+          <div class="profile-field">
+            <label for="fullName">Full name *</label>
+            <input id="fullName" name="fullName" type="text" autocomplete="name" maxlength="120" required placeholder="e.g. Aung Aung" />
+          </div>
+
+          <div class="profile-field">
+            <label for="dateOfBirth">Date of birth *</label>
+            <input id="dateOfBirth" name="dateOfBirth" type="date" autocomplete="bday" required />
+          </div>
+
+          <div class="profile-field">
+            <label for="country">Country *</label>
+            <select id="country" name="country" autocomplete="country-name" required>
+              <option value="">Select your country</option>
+              <option value="Bangladesh">Bangladesh</option>
+              <option value="India">India</option>
+              <option value="Myanmar">Myanmar</option>
+              <option value="Singapore">Singapore</option>
+              <option value="Thailand">Thailand</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="profile-field">
+            <label for="phone">Phone number <span style="font-weight: 500; color: #888;">(optional)</span></label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="30" placeholder="e.g. +95 9..." />
+          </div>
+
+          <div class="profile-field">
+            <label for="email">Email <span style="font-weight: 500; color: #888;">(optional)</span></label>
+            <input id="email" name="email" type="email" autocomplete="email" maxlength="160" placeholder="you@example.com" />
+          </div>
+        </div>
+
+        <fieldset class="profile-fieldset">
+          <legend>Gender *</legend>
+          <div class="profile-options">
+            <label class="profile-option"><input type="radio" name="gender" value="female" required /> Woman</label>
+            <label class="profile-option"><input type="radio" name="gender" value="male" required /> Man</label>
+            <label class="profile-option"><input type="radio" name="gender" value="non_binary" required /> Non-binary</label>
+            <label class="profile-option"><input type="radio" name="gender" value="prefer_not_to_say" required /> Prefer not to say</label>
+          </div>
+        </fieldset>
+
+        <label class="profile-consent">
+          <input id="profileConsent" name="profileConsent" type="checkbox" required />
+          <span>I agree that Daily Wage may send this profile to its configured data service for account setup and analysis.</span>
+        </label>
+
+        <div class="profile-error" id="profileFormError" role="alert" hidden></div>
+
+        <div class="profile-actions">
+          <button class="profile-cancel" id="profileCancelButton" type="button">Cancel</button>
+          <button class="profile-submit" id="profileSubmitButton" type="submit">Save &amp; Continue</button>
+        </div>
+        <p class="profile-helper">Your profile is saved on this device first. It is sent over HTTPS only when a receiver endpoint has been configured by the app owner.</p>
+      </form>
+    </section>
+  </div>
+
+  <div class="profile-toast" id="profileToast" role="status" aria-live="polite"></div>
+
   <div class="content-wrapper">
     <!-- Header -->
     <div class="header">
@@ -469,13 +817,13 @@
 
     <!-- User Card -->
     <div class="user-card">
-      <div class="user-logo">DW</div>
+      <div class="user-logo" id="userAvatar" aria-hidden="true">DW</div>
       <div class="user-info">
-        <div class="user-phone">+65-769-2388</div>
-        <div class="user-status">Daily Wage Prepaid</div>
-        <div class="user-rating">⭐ 151</div>
+        <div class="user-phone" id="userDisplayName">New member</div>
+        <div class="user-status" id="userDisplayStatus">Complete your profile</div>
+        <div class="user-rating" id="userDisplayCountry">🌍 Country not set</div>
       </div>
-      <button class="switch-btn">Switch No. ></button>
+      <button class="switch-btn" id="editProfileButton" type="button">Edit profile</button>
     </div>
 
     <!-- Main Container -->
@@ -597,7 +945,7 @@
   </div>
 
   <script>
-    // Add interactivity
+    // Bottom navigation
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', function(e) {
         e.preventDefault();
@@ -605,6 +953,231 @@
         this.classList.add('active');
       });
     });
+
+    // First-entry profile setup
+    const PROFILE_STORAGE_KEY = 'dailyWageUserProfile';
+    const PROFILE_ENDPOINT = document.querySelector('meta[name="user-data-endpoint"]')?.content.trim() || '';
+    const profileBackdrop = document.getElementById('profileBackdrop');
+    const profileForm = document.getElementById('userProfileForm');
+    const profileFormError = document.getElementById('profileFormError');
+    const profileSubmitButton = document.getElementById('profileSubmitButton');
+    const profileCancelButton = document.getElementById('profileCancelButton');
+    const profileToast = document.getElementById('profileToast');
+    const dateOfBirthInput = document.getElementById('dateOfBirth');
+    const profileIntro = document.getElementById('profileModalIntro');
+    let profileIsRequired = false;
+    let lastFocusedElement = null;
+    let toastTimer;
+
+    dateOfBirthInput.max = new Date().toISOString().split('T')[0];
+
+    function readStoredProfile() {
+      try {
+        const stored = localStorage.getItem(PROFILE_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function writeStoredProfile(profile) {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    }
+
+    function makeClientId() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+      }
+      return `dw-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+
+    function fillProfileForm(profile = {}) {
+      document.getElementById('fullName').value = profile.fullName || '';
+      document.getElementById('dateOfBirth').value = profile.dateOfBirth || '';
+      document.getElementById('country').value = profile.country || '';
+      document.getElementById('phone').value = profile.phone || '';
+      document.getElementById('email').value = profile.email || '';
+      document.querySelectorAll('input[name="gender"]').forEach(radio => {
+        radio.checked = radio.value === profile.gender;
+      });
+      document.getElementById('profileConsent').checked = Boolean(profile.consentedAt);
+    }
+
+    function openProfileEditor(required = false) {
+      const existingProfile = readStoredProfile();
+      profileIsRequired = required;
+      lastFocusedElement = document.activeElement;
+      fillProfileForm(existingProfile || {});
+      profileIntro.textContent = required
+        ? 'Complete your profile before using the app. Required fields are marked with an asterisk.'
+        : 'Update your profile details. Changes are sent to the configured data service after you save.';
+      profileCancelButton.hidden = required;
+      profileBackdrop.classList.add('is-open');
+      document.body.classList.add('profile-modal-open');
+      window.setTimeout(() => document.getElementById('fullName').focus(), 0);
+    }
+
+    function closeProfileEditor() {
+      if (profileIsRequired) return;
+      profileBackdrop.classList.remove('is-open');
+      document.body.classList.remove('profile-modal-open');
+      if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+        lastFocusedElement.focus();
+      }
+    }
+
+    function showProfileError(message) {
+      profileFormError.textContent = message;
+      profileFormError.hidden = !message;
+    }
+
+    function showProfileToast(message) {
+      window.clearTimeout(toastTimer);
+      profileToast.textContent = message;
+      profileToast.classList.add('is-visible');
+      toastTimer = window.setTimeout(() => profileToast.classList.remove('is-visible'), 4500);
+    }
+
+    function updateUserCard(profile) {
+      const name = profile?.fullName || 'New member';
+      const initials = name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(part => part[0].toUpperCase())
+        .join('') || 'DW';
+      document.getElementById('userAvatar').textContent = initials;
+      document.getElementById('userDisplayName').textContent = name;
+      document.getElementById('userDisplayStatus').textContent = profile?.syncStatus === 'synced'
+        ? 'Profile synced'
+        : profile?.syncStatus === 'local-only'
+          ? 'Saved on this device'
+          : 'Complete your profile';
+      document.getElementById('userDisplayCountry').textContent = profile?.country
+        ? `🌍 ${profile.country}`
+        : '🌍 Country not set';
+    }
+
+    function collectProfile() {
+      const formData = new FormData(profileForm);
+      return {
+        fullName: String(formData.get('fullName') || '').trim(),
+        dateOfBirth: String(formData.get('dateOfBirth') || ''),
+        country: String(formData.get('country') || ''),
+        gender: String(formData.get('gender') || ''),
+        phone: String(formData.get('phone') || '').trim(),
+        email: String(formData.get('email') || '').trim().toLowerCase()
+      };
+    }
+
+    function buildPayload(profile, clientId, submittedAt) {
+      return {
+        schemaVersion: 1,
+        event: 'user_profile.submitted',
+        source: 'daily-wage-app/Home',
+        clientId,
+        submittedAt,
+        profile
+      };
+    }
+
+    function hasSafeEndpoint(endpoint) {
+      try {
+        const parsed = new URL(endpoint, window.location.href);
+        return parsed.protocol === 'https:' || parsed.origin === window.location.origin;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    async function sendProfile(profile, clientId, submittedAt) {
+      if (!PROFILE_ENDPOINT) return { status: 'local-only' };
+      if (!hasSafeEndpoint(PROFILE_ENDPOINT)) {
+        throw new Error('The configured receiver must use HTTPS or the same website origin.');
+      }
+
+      const response = await fetch(PROFILE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPayload(profile, clientId, submittedAt)),
+        credentials: 'omit',
+        cache: 'no-store',
+        referrerPolicy: 'strict-origin-when-cross-origin'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Receiver returned HTTP ${response.status}.`);
+      }
+      return { status: 'synced' };
+    }
+
+    profileForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      showProfileError('');
+
+      if (!profileForm.checkValidity()) {
+        profileForm.reportValidity();
+        showProfileError('Please complete all required fields and accept the data-use consent.');
+        return;
+      }
+
+      const profile = collectProfile();
+      const existingProfile = readStoredProfile() || {};
+      const clientId = existingProfile.clientId || makeClientId();
+      const submittedAt = new Date().toISOString();
+      profileSubmitButton.disabled = true;
+      profileSubmitButton.textContent = PROFILE_ENDPOINT ? 'Sending…' : 'Saving…';
+
+      try {
+        const result = await sendProfile(profile, clientId, submittedAt);
+        const storedProfile = {
+          ...profile,
+          clientId,
+          consentedAt: existingProfile.consentedAt || submittedAt,
+          savedAt: submittedAt,
+          syncStatus: result.status,
+          syncedAt: result.status === 'synced' ? submittedAt : existingProfile.syncedAt || null
+        };
+        writeStoredProfile(storedProfile);
+        updateUserCard(storedProfile);
+        profileIsRequired = false;
+        closeProfileEditor();
+        showProfileToast(result.status === 'synced'
+          ? 'Profile saved and sent to the data service.'
+          : 'Profile saved on this device. Configure the receiver endpoint to sync it.');
+      } catch (error) {
+        const localDraft = {
+          ...profile,
+          clientId,
+          consentedAt: existingProfile.consentedAt || submittedAt,
+          savedAt: submittedAt,
+          syncStatus: 'sync-failed'
+        };
+        writeStoredProfile(localDraft);
+        updateUserCard(localDraft);
+        showProfileError(`Profile saved locally, but it was not sent: ${error.message}`);
+      } finally {
+        profileSubmitButton.disabled = false;
+        profileSubmitButton.textContent = 'Save & Continue';
+      }
+    });
+
+    document.getElementById('editProfileButton').addEventListener('click', () => openProfileEditor(false));
+    profileCancelButton.addEventListener('click', closeProfileEditor);
+    profileBackdrop.addEventListener('click', event => {
+      if (event.target === profileBackdrop) closeProfileEditor();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && profileBackdrop.classList.contains('is-open')) {
+        closeProfileEditor();
+      }
+    });
+
+    const savedProfile = readStoredProfile();
+    updateUserCard(savedProfile);
+    if (!savedProfile) {
+      openProfileEditor(true);
+    }
   </script>
 </body>
 </html>
