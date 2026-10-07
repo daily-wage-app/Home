@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily Wage App - Home</title>
-  <!-- Set this to the HTTPS API endpoint owned by the separate data/analytics service. -->
-  <meta name="user-data-endpoint" content="" />
+  <meta name="theme-color" content="#1e88e5" />
   <style>
     * {
       box-sizing: border-box;
@@ -704,7 +703,7 @@
   </style>
 </head>
 <body>
-  <!-- First-entry profile collection. The form posts only to the configured HTTPS API endpoint. -->
+  <!-- First-entry profile collection. The form writes to Firebase only after explicit consent. -->
   <div class="profile-backdrop" id="profileBackdrop">
     <section class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" aria-describedby="profileModalIntro">
       <div class="profile-modal-header">
@@ -773,7 +772,7 @@
           <button class="profile-cancel" id="profileCancelButton" type="button">Cancel</button>
           <button class="profile-submit" id="profileSubmitButton" type="submit">Save &amp; Continue</button>
         </div>
-        <p class="profile-helper">Your profile is saved on this device first. It is sent over HTTPS only when a receiver endpoint has been configured by the app owner.</p>
+        <p class="profile-helper">After you consent, your profile is sent to Firebase over HTTPS and saved on this device. If sync fails, a local draft is kept and you can retry.</p>
       </form>
     </section>
   </div>
@@ -944,7 +943,9 @@
     </a>
   </div>
 
-  <script>
+  <script type="module">
+    import { auth, db, signInAnonymously, doc, getDoc, setDoc, serverTimestamp } from './firebase.js';
+
     // Bottom navigation
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', function(e) {
@@ -956,7 +957,6 @@
 
     // First-entry profile setup
     const PROFILE_STORAGE_KEY = 'dailyWageUserProfile';
-    const PROFILE_ENDPOINT = document.querySelector('meta[name="user-data-endpoint"]')?.content.trim() || '';
     const profileBackdrop = document.getElementById('profileBackdrop');
     const profileForm = document.getElementById('userProfileForm');
     const profileFormError = document.getElementById('profileFormError');
@@ -1010,7 +1010,7 @@
       fillProfileForm(existingProfile || {});
       profileIntro.textContent = required
         ? 'Complete your profile before using the app. Required fields are marked with an asterisk.'
-        : 'Update your profile details. Changes are sent to the configured data service after you save.';
+        : 'Update your profile details. Changes are saved securely to your Daily Wage account.';
       profileCancelButton.hidden = required;
       profileBackdrop.classList.add('is-open');
       document.body.classList.add('profile-modal-open');
@@ -1050,8 +1050,8 @@
       document.getElementById('userDisplayName').textContent = name;
       document.getElementById('userDisplayStatus').textContent = profile?.syncStatus === 'synced'
         ? 'Profile synced'
-        : profile?.syncStatus === 'local-only'
-          ? 'Saved on this device'
+        : profile?.syncStatus === 'sync-failed'
+          ? 'Sync needed'
           : 'Complete your profile';
       document.getElementById('userDisplayCountry').textContent = profile?.country
         ? `🌍 ${profile.country}`
@@ -1070,45 +1070,33 @@
       };
     }
 
-    function buildPayload(profile, clientId, submittedAt) {
-      return {
-        schemaVersion: 1,
-        event: 'user_profile.submitted',
+    async function saveProfile(profile) {
+      let user = auth.currentUser;
+      if (!user || !user.isAnonymous) {
+        const credential = await signInAnonymously(auth);
+        user = credential.user;
+      }
+
+      const profileRef = doc(db, 'userProfiles', user.uid);
+      const previous = await getDoc(profileRef);
+      const oldData = previous.exists() ? previous.data() : null;
+      const profileDocument = {
+        uid: user.uid,
+        fullName: profile.fullName,
+        dateOfBirth: profile.dateOfBirth,
+        country: profile.country,
+        gender: profile.gender,
+        phone: profile.phone,
+        email: profile.email,
+        consentVersion: 1,
         source: 'daily-wage-app/Home',
-        clientId,
-        submittedAt,
-        profile
+        createdAt: oldData?.createdAt || serverTimestamp(),
+        consentedAt: oldData?.consentedAt || serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
-    }
 
-    function hasSafeEndpoint(endpoint) {
-      try {
-        const parsed = new URL(endpoint, window.location.href);
-        return parsed.protocol === 'https:' || parsed.origin === window.location.origin;
-      } catch (error) {
-        return false;
-      }
-    }
-
-    async function sendProfile(profile, clientId, submittedAt) {
-      if (!PROFILE_ENDPOINT) return { status: 'local-only' };
-      if (!hasSafeEndpoint(PROFILE_ENDPOINT)) {
-        throw new Error('The configured receiver must use HTTPS or the same website origin.');
-      }
-
-      const response = await fetch(PROFILE_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildPayload(profile, clientId, submittedAt)),
-        credentials: 'omit',
-        cache: 'no-store',
-        referrerPolicy: 'strict-origin-when-cross-origin'
-      });
-
-      if (!response.ok) {
-        throw new Error(`Receiver returned HTTP ${response.status}.`);
-      }
-      return { status: 'synced' };
+      await setDoc(profileRef, profileDocument);
+      return { status: 'synced', uid: user.uid };
     }
 
     profileForm.addEventListener('submit', async event => {
@@ -1126,25 +1114,24 @@
       const clientId = existingProfile.clientId || makeClientId();
       const submittedAt = new Date().toISOString();
       profileSubmitButton.disabled = true;
-      profileSubmitButton.textContent = PROFILE_ENDPOINT ? 'Sending…' : 'Saving…';
+      profileSubmitButton.textContent = 'Saving…';
 
       try {
-        const result = await sendProfile(profile, clientId, submittedAt);
+        const result = await saveProfile(profile);
         const storedProfile = {
           ...profile,
           clientId,
+          firebaseUid: result.uid,
           consentedAt: existingProfile.consentedAt || submittedAt,
           savedAt: submittedAt,
           syncStatus: result.status,
-          syncedAt: result.status === 'synced' ? submittedAt : existingProfile.syncedAt || null
+          syncedAt: submittedAt
         };
         writeStoredProfile(storedProfile);
         updateUserCard(storedProfile);
         profileIsRequired = false;
         closeProfileEditor();
-        showProfileToast(result.status === 'synced'
-          ? 'Profile saved and sent to the data service.'
-          : 'Profile saved on this device. Configure the receiver endpoint to sync it.');
+        showProfileToast('Profile saved securely to your Daily Wage account.');
       } catch (error) {
         const localDraft = {
           ...profile,
@@ -1155,7 +1142,7 @@
         };
         writeStoredProfile(localDraft);
         updateUserCard(localDraft);
-        showProfileError(`Profile saved locally, but it was not sent: ${error.message}`);
+        showProfileError(`Profile saved on this device, but Firebase sync failed: ${error.message}`);
       } finally {
         profileSubmitButton.disabled = false;
         profileSubmitButton.textContent = 'Save & Continue';
@@ -1175,7 +1162,7 @@
 
     const savedProfile = readStoredProfile();
     updateUserCard(savedProfile);
-    if (!savedProfile) {
+    if (!savedProfile || savedProfile.syncStatus !== 'synced') {
       openProfileEditor(true);
     }
   </script>
