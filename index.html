@@ -711,6 +711,21 @@
     .withdrawal-status.rejected { background: #fff0ef; color: #a52b25; }
     .reward-empty { padding: 14px 2px; color: #687887; font-size: 12px; }
 
+    .smart-wage-card { margin-top: 22px; padding: 18px; border: 1px solid #dce8f2; border-radius: 18px; background: linear-gradient(145deg, #fff 0%, #f2f8fc 100%); box-shadow: 0 8px 22px rgba(27, 67, 98, .07); scroll-margin-top: 18px; }
+    .smart-wage-kicker { color: #176b9b; font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+    .smart-wage-card h2 { margin: 4px 0 6px; color: #183b54; font-size: 19px; }
+    .smart-wage-intro, .smart-wage-note { color: #657482; font-size: 12px; line-height: 1.5; }
+    .smart-wage-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 15px; }
+    .smart-wage-field label { display: block; margin-bottom: 5px; color: #344b5d; font-size: 12px; font-weight: 750; }
+    .smart-wage-field input, .smart-wage-field select { width: 100%; min-height: 42px; border: 1px solid #d5e0e9; border-radius: 9px; padding: 9px 10px; background: #fff; color: #203747; font: inherit; font-size: 14px; }
+    .smart-wage-field input:focus, .smart-wage-field select:focus { outline: 3px solid rgba(30,136,229,.13); border-color: #1e88e5; }
+    .smart-wage-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 15px; }
+    .smart-wage-result { min-width: 0; padding: 11px; border-radius: 11px; background: #eaf3f9; }
+    .smart-wage-result span { display: block; color: #607588; font-size: 11px; }
+    .smart-wage-result strong { display: block; margin-top: 4px; color: #174e73; font-size: 15px; overflow-wrap: anywhere; }
+    .smart-wage-reset { min-height: 40px; margin-top: 12px; border: 1px solid #bfd1df; border-radius: 9px; padding: 8px 12px; background: #fff; color: #31536c; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+    .smart-wage-note { margin-top: 10px; }
+
     .withdrawal-backdrop[hidden] { display: none !important; }
     .withdrawal-backdrop { position: fixed; inset: 0; z-index: 1200; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(13,31,55,.64); backdrop-filter: blur(4px); }
     .withdrawal-backdrop.is-open { display: flex; }
@@ -769,6 +784,7 @@
       .reward-top { flex-direction: column; }
       .reward-balance { text-align: left; }
       .reward-actions { flex-direction: column; }
+      .smart-wage-fields, .smart-wage-results { grid-template-columns: 1fr; }
       .withdrawal-dialog { border-radius: 16px; padding: 18px; }
     }
   </style>
@@ -888,15 +904,6 @@
   <div class="content-wrapper">
     <!-- Header -->
     <div class="header">
-      <div class="header-top">
-        <div class="header-title">9:41</div>
-        <div class="header-icons">
-          <span>📶</span>
-          <span>📶</span>
-          <span>🔋</span>
-        </div>
-      </div>
-
       <!-- Search Bar -->
       <div class="search-bar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -981,13 +988,61 @@
           <button class="reward-checkin-button" id="dailyCheckinButton" type="button" disabled>ဒီနေ့ ဝင်ရောက်မည်</button>
           <button class="reward-withdraw-button" id="openWithdrawalButton" type="button" disabled>TrueMoney မှ ထုတ်ယူမည်</button>
         </div>
-        <p class="reward-note">၇ ရက်ဆက်တိုက် ဝင်ရောက်ပါက အမှတ် ၁,၀၀၀ ရရှိမည် · အမှတ် ၁,၀၀၀ = ၁၀ ဘတ် · ဘန်ကောက်စံတော်ချိန်ဖြင့် တွက်ချက်သည်။</p>
+        <p class="reward-note">ဤဖုန်း၏ app/browser တပ်ဆင်မှုတစ်ခုမှ တစ်နေ့တစ်ကြိမ်သာ ဝင်ရောက်နိုင်ပါသည် · ၇ ရက်ဆက်တိုက် ဝင်ရောက်ပါက အမှတ် ၁,၀၀၀ ရရှိမည် · အမှတ် ၁,၀၀၀ = ၁၀ ဘတ် · ဘန်ကောက်စံတော်ချိန်ဖြင့် တွက်ချက်သည်။</p>
       </section>
       <div class="reward-notice" id="rewardNotice" role="status" aria-live="polite" hidden></div>
 
       <section class="reward-history" id="withdrawalHistorySection" aria-labelledby="withdrawalHistoryTitle">
         <h3 id="withdrawalHistoryTitle">ငွေထုတ်တောင်းဆိုမှုမှတ်တမ်း</h3>
         <div class="reward-history-list" id="withdrawalHistory" aria-live="polite"><p class="reward-empty">မှတ်တမ်းကို ဖတ်နေပါသည်…</p></div>
+      </section>
+
+      <section class="smart-wage-card" id="earnings" aria-labelledby="smartWageHeading">
+        <div class="smart-wage-kicker">SMART DAILY WAGE</div>
+        <h2 id="smartWageHeading">နေ့စားဝင်ငွေ စမတ်တွက်စက်</h2>
+        <p class="smart-wage-intro">တစ်ရက်လုပ်အားခနှင့် အလုပ်ချိန်ကို ထည့်ပါ။ အပတ်စဉ်/လစဉ် ဝင်ငွေ၊ နာရီလုပ်အားခနှင့် အသုံးစရိတ်နုတ်ပြီး ကျန်ငွေကို ခန့်မှန်းပေးပါမည်။</p>
+        <form id="smartWageForm" autocomplete="off">
+          <div class="smart-wage-fields">
+            <div class="smart-wage-field">
+              <label for="smartWageCurrency">ငွေကြေး</label>
+              <select id="smartWageCurrency" name="currency">
+                <option value="THB">ထိုင်းဘတ် (THB)</option>
+                <option value="MMK">မြန်မာကျပ် (MMK)</option>
+                <option value="USD">အမေရိကန်ဒေါ်လာ (USD)</option>
+                <option value="SGD">စင်ကာပူဒေါ်လာ (SGD)</option>
+              </select>
+            </div>
+            <div class="smart-wage-field">
+              <label for="smartDailyPay">တစ်ရက်လုပ်အားခ *</label>
+              <input id="smartDailyPay" name="dailyPay" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="ဥပမာ 500" required />
+            </div>
+            <div class="smart-wage-field">
+              <label for="smartWorkDays">တစ်ပတ်အလုပ်လုပ်ရက် *</label>
+              <input id="smartWorkDays" name="workDays" type="number" min="1" max="7" step="1" inputmode="numeric" placeholder="၁ မှ ၇ ရက်" required />
+            </div>
+            <div class="smart-wage-field">
+              <label for="smartWorkHours">တစ်ရက်အလုပ်ချိန် *</label>
+              <input id="smartWorkHours" name="workHours" type="number" min="1" max="24" step="0.5" inputmode="decimal" placeholder="ဥပမာ 8 နာရီ" required />
+            </div>
+            <div class="smart-wage-field">
+              <label for="smartMonthlyExpenses">လစဉ်ခန့်မှန်းအသုံးစရိတ်</label>
+              <input id="smartMonthlyExpenses" name="monthlyExpenses" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" />
+            </div>
+            <div class="smart-wage-field">
+              <label for="smartSavingsGoal">ငွေစုရည်မှန်းချက်</label>
+              <input id="smartSavingsGoal" name="savingsGoal" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" />
+            </div>
+          </div>
+          <div class="smart-wage-results" aria-live="polite">
+            <div class="smart-wage-result"><span>နာရီလုပ်အားခ ခန့်မှန်း</span><strong id="smartHourlyResult">—</strong></div>
+            <div class="smart-wage-result"><span>အပတ်စဉ်ဝင်ငွေ</span><strong id="smartWeeklyResult">—</strong></div>
+            <div class="smart-wage-result"><span>လစဉ်ဝင်ငွေ ခန့်မှန်း</span><strong id="smartMonthlyResult">—</strong></div>
+            <div class="smart-wage-result"><span>အသုံးစရိတ်နုတ်ပြီး ကျန်ငွေ</span><strong id="smartNetResult">—</strong></div>
+            <div class="smart-wage-result"><span>ရည်မှန်းချက်ပြည့်ရန် ခန့်မှန်း</span><strong id="smartGoalResult">—</strong></div>
+          </div>
+          <button class="smart-wage-reset" id="smartWageReset" type="button">တွက်ချက်မှုကို ရှင်းရန်</button>
+        </form>
+        <p class="smart-wage-note">လစဉ်ဝင်ငွေကို ၁ နှစ် = ၅၂ ပတ်ဖြင့် ခန့်မှန်းထားသည်။ ထည့်သွင်းချက်များကို ဤစက်၏ browser ထဲတွင်သာ သိမ်းဆည်းပြီး Firebase သို့ မပို့ပါ။</p>
       </section>
 
       <!-- Special Offers Section -->
@@ -1055,15 +1110,14 @@
     import { auth, db, signInAnonymously, doc, getDoc, setDoc, serverTimestamp } from './firebase.js';
 
     // Bottom navigation
-      document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-          e.preventDefault();
-          document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-          this.classList.add('active');
-          if (this.getAttribute('href') === '#withdrawalHistorySection') {
-            document.getElementById('withdrawalHistorySection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        });
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        const targetId = this.getAttribute('href')?.slice(1);
+        document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     });
 
     // First-entry profile setup
@@ -1277,6 +1331,96 @@
     if (!savedProfile || savedProfile.syncStatus !== 'synced') {
       openProfileEditor(true);
     }
+  </script>
+  <script>
+    (() => {
+      const STORAGE_KEY = 'dailyWageSmartPlanner';
+      const form = document.getElementById('smartWageForm');
+      const fields = {
+        currency: document.getElementById('smartWageCurrency'),
+        dailyPay: document.getElementById('smartDailyPay'),
+        workDays: document.getElementById('smartWorkDays'),
+        workHours: document.getElementById('smartWorkHours'),
+        monthlyExpenses: document.getElementById('smartMonthlyExpenses'),
+        savingsGoal: document.getElementById('smartSavingsGoal')
+      };
+      const output = {
+        hourly: document.getElementById('smartHourlyResult'),
+        weekly: document.getElementById('smartWeeklyResult'),
+        monthly: document.getElementById('smartMonthlyResult'),
+        net: document.getElementById('smartNetResult'),
+        goal: document.getElementById('smartGoalResult')
+      };
+
+      function formatMoney(value, currency) {
+        try {
+          return new Intl.NumberFormat('my-MM', {
+            style: 'currency', currency,
+            maximumFractionDigits: currency === 'MMK' ? 0 : 2
+          }).format(value);
+        } catch (error) {
+          return `${Number(value).toLocaleString('my-MM')} ${currency}`;
+        }
+      }
+
+      function saveLocalPlan() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(
+            Object.entries(fields).map(([key, input]) => [key, input.value])
+          )));
+        } catch (error) {
+          // The calculator still works when browser storage is unavailable.
+        }
+      }
+
+      function calculate() {
+        const currency = ['THB', 'MMK', 'USD', 'SGD'].includes(fields.currency.value) ? fields.currency.value : 'THB';
+        const dailyPay = Number(fields.dailyPay.value);
+        const workDays = Number(fields.workDays.value);
+        const workHours = Number(fields.workHours.value);
+        const monthlyExpenses = Math.max(0, Number(fields.monthlyExpenses.value) || 0);
+        const savingsGoal = Math.max(0, Number(fields.savingsGoal.value) || 0);
+        saveLocalPlan();
+
+        if (!(dailyPay > 0) || !(workDays >= 1 && workDays <= 7) || !(workHours > 0 && workHours <= 24)) {
+          Object.values(output).forEach(element => { element.textContent = '—'; });
+          return;
+        }
+
+        const weeklyIncome = dailyPay * workDays;
+        const monthlyIncome = weeklyIncome * 52 / 12;
+        const monthlyNet = monthlyIncome - monthlyExpenses;
+        output.hourly.textContent = formatMoney(dailyPay / workHours, currency);
+        output.weekly.textContent = formatMoney(weeklyIncome, currency);
+        output.monthly.textContent = formatMoney(monthlyIncome, currency);
+        output.net.textContent = formatMoney(monthlyNet, currency);
+        output.goal.textContent = savingsGoal === 0
+          ? 'ရည်မှန်းချက် ထည့်ပါ'
+          : monthlyNet > 0
+            ? `${Math.ceil(savingsGoal / monthlyNet).toLocaleString('my-MM')} လခန့်`
+            : 'လစဉ်ကျန်ငွေ မလုံလောက်ပါ';
+      }
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (saved && typeof saved === 'object') {
+          Object.entries(fields).forEach(([key, input]) => {
+            if (typeof saved[key] === 'string') input.value = saved[key];
+          });
+        }
+      } catch (error) {
+        // Ignore invalid or unavailable local calculator data.
+      }
+
+      form.addEventListener('input', calculate);
+      form.addEventListener('change', calculate);
+      document.getElementById('smartWageReset').addEventListener('click', () => {
+        form.reset();
+        try { localStorage.removeItem(STORAGE_KEY); } catch (error) { /* Ignore blocked storage. */ }
+        calculate();
+      });
+      calculate();
+    })();
   </script>
   <script type="module" src="./rewards.js"></script>
 </body>

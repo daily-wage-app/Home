@@ -9,6 +9,8 @@ const CHECKIN_REWARD_POINTS = 1000;
 const CHECKIN_CYCLE_DAYS = 7;
 const WITHDRAWAL_CONSENT_VERSION = 1;
 const TIME_ZONE = 'Asia/Bangkok';
+const DEVICE_ID_STORAGE_KEY = 'dailyWageDeviceId';
+const DEVICE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 const pointBalance = document.getElementById('rewardPointBalance');
 const bahtEquivalent = document.getElementById('rewardBahtEquivalent');
@@ -33,6 +35,8 @@ const submitWithdrawalButton = document.getElementById('submitWithdrawalButton')
 let currentUser = null;
 let currentWallet = null;
 let isBusy = false;
+let installationId = null;
+let deviceClaimedByAnotherUser = false;
 
 function bangkokDayKey(date) {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -41,6 +45,34 @@ function bangkokDayKey(date) {
   }).formatToParts(date);
   const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
   return `${values.year}-${values.month}-${values.day}`;
+}
+
+function bangkokDayNumber(date = new Date()) {
+  return Date.parse(`${bangkokDayKey(date)}T00:00:00.000Z`);
+}
+
+function getOrCreateInstallationId() {
+  const stored = window.localStorage.getItem(DEVICE_ID_STORAGE_KEY);
+  if (stored && DEVICE_ID_PATTERN.test(stored)) return stored;
+  if (typeof window.crypto?.randomUUID !== 'function') {
+    throw new Error('Secure random UUID is unavailable');
+  }
+  const created = window.crypto.randomUUID().toLowerCase();
+  window.localStorage.setItem(DEVICE_ID_STORAGE_KEY, created);
+  if (window.localStorage.getItem(DEVICE_ID_STORAGE_KEY) !== created) {
+    throw new Error('Device identifier could not be persisted');
+  }
+  return created;
+}
+
+try {
+  installationId = getOrCreateInstallationId();
+} catch (error) {
+  installationId = null;
+}
+
+function deviceClaimRef() {
+  return doc(db, 'deviceCheckInClaims', installationId);
 }
 
 function dayDifference(newer, older) {
@@ -89,7 +121,7 @@ function setWithdrawalError(message) {
 
 function setBusy(value) {
   isBusy = value;
-  checkinButton.disabled = value || !currentWallet || isCheckedInToday();
+  checkinButton.disabled = value || !currentWallet || isCheckedInToday() || deviceClaimedByAnotherUser || !installationId;
   withdrawButton.disabled = value || !currentWallet || currentWallet.pointsBalance < MIN_WITHDRAWAL_BAHT * POINTS_PER_BAHT || withdrewToday();
   submitWithdrawalButton.disabled = value;
 }
@@ -124,10 +156,14 @@ function renderWallet() {
 
   if (isCheckedInToday()) {
     checkinMessage.textContent = 'ဒီနေ့ ဝင်ရောက်မှု မှတ်တမ်းတင်ပြီးပါပြီ။ နောက်တစ်ကြိမ်ကို ဘန်ကောက်စံတော်ချိန်အရ မနက်ဖြန်မှ ပြုလုပ်နိုင်ပါမည်။';
+  } else if (deviceClaimedByAnotherUser) {
+    checkinMessage.textContent = 'ဒီနေ့ ဤဖုန်း/browser မှ ဝင်ရောက်မှုကို အခြားအကောင့်ဖြင့် ရယူပြီးပါပြီ။ မနက်ဖြန်မှ ပြန်ဝင်နိုင်ပါမည်။';
+  } else if (!installationId) {
+    checkinMessage.textContent = 'ဤ browser တွင် လုံခြုံသောစက် ID ကို သိမ်းမရပါ။ စက်၏ storage ကို ဖွင့်ပြီး ပြန်စမ်းပါ။';
   } else {
-    checkinMessage.textContent = `ဘန်ကောက်စံတော်ချိန်အရ တစ်နေ့တစ်ကြိမ် ဝင်ရောက်ပါ။ ${CHECKIN_CYCLE_DAYS} ရက်ဆက်တိုက် ဝင်ရောက်ပါက ${CHECKIN_REWARD_POINTS.toLocaleString('en-US')} မှတ် ရရှိပါမည်။`;
+    checkinMessage.textContent = `ဤဖုန်း/browser တပ်ဆင်မှုမှ တစ်နေ့တစ်ကြိမ်သာ ဝင်ရောက်နိုင်ပါသည်။ ${CHECKIN_CYCLE_DAYS} ရက်ဆက်တိုက် ဝင်ရောက်ပါက ${CHECKIN_REWARD_POINTS.toLocaleString('en-US')} မှတ် ရရှိပါမည်။`;
   }
-  checkinButton.disabled = isBusy || isCheckedInToday() || !currentUser;
+  checkinButton.disabled = isBusy || isCheckedInToday() || deviceClaimedByAnotherUser || !currentUser || !installationId;
   withdrawButton.disabled = isBusy || withdrewToday() || points < MIN_WITHDRAWAL_BAHT * POINTS_PER_BAHT || !currentUser;
 }
 
@@ -169,12 +205,14 @@ async function bootstrapRewards(user) {
   if (!user || !user.isAnonymous) {
     currentUser = null;
     currentWallet = null;
+    deviceClaimedByAnotherUser = false;
     renderWallet();
     await renderHistory();
     return;
   }
 
   currentUser = user;
+  deviceClaimedByAnotherUser = false;
   const userId = user.uid;
   currentWallet = null;
   renderWallet();
@@ -195,6 +233,7 @@ async function bootstrapRewards(user) {
           pointsBalance: 0,
           streakCount: 0,
           lastCheckInAt: null,
+          lastCheckInDeviceId: null,
           lastWithdrawalAt: null,
           lastWithdrawalRequestId: null,
           lastRefundRequestId: null,
@@ -206,6 +245,14 @@ async function bootstrapRewards(user) {
     const walletSnapshot = await getDoc(walletRef);
     if (currentUser?.uid !== userId) return;
     currentWallet = walletSnapshot.exists() ? walletSnapshot.data() : null;
+    if (installationId) {
+      const claimSnapshot = await getDoc(deviceClaimRef());
+      if (currentUser?.uid !== userId) return;
+      const claim = claimSnapshot.exists() ? claimSnapshot.data() : null;
+      deviceClaimedByAnotherUser = Boolean(
+        claim && claim.dayNumber === bangkokDayNumber(new Date()) && claim.uid !== userId
+      );
+    }
     renderWallet();
     await renderHistory();
   } catch (error) {
@@ -217,14 +264,25 @@ async function bootstrapRewards(user) {
 }
 
 checkinButton.addEventListener('click', async () => {
-  if (!currentUser || !currentWallet || isBusy) return;
+  if (!currentUser || !currentWallet || isBusy || !installationId || deviceClaimedByAnotherUser) return;
   setBusy(true);
   showNotice('');
   try {
     const walletRef = doc(db, 'rewardWallets', currentUser.uid);
     const result = await runTransaction(db, async transaction => {
-      const snapshot = await transaction.get(walletRef);
+      const dayNumber = bangkokDayNumber(new Date());
+      const claimRef = deviceClaimRef();
+      const [snapshot, claimSnapshot] = await Promise.all([
+        transaction.get(walletRef),
+        transaction.get(claimRef)
+      ]);
       if (!snapshot.exists()) throw new Error('Wallet not found');
+      const existingClaim = claimSnapshot.exists() ? claimSnapshot.data() : null;
+      if (existingClaim?.dayNumber === dayNumber) {
+        throw new Error(claimSnapshot.data().uid === currentUser.uid
+          ? 'ALREADY_CHECKED_IN'
+          : 'DEVICE_ALREADY_CHECKED_IN');
+      }
       const wallet = snapshot.data();
       const last = asDate(wallet.lastCheckInAt);
       const elapsedDays = last ? dayDifference(new Date(), last) : -1;
@@ -235,6 +293,14 @@ checkinButton.addEventListener('click', async () => {
         pointsBalance: Number(wallet.pointsBalance || 0) + (earned ? CHECKIN_REWARD_POINTS : 0),
         streakCount: earned ? 0 : nextStreak,
         lastCheckInAt: serverTimestamp(),
+        lastCheckInDeviceId: installationId,
+        updatedAt: serverTimestamp()
+      });
+      transaction.set(claimRef, {
+        uid: currentUser.uid,
+        deviceId: installationId,
+        dayNumber,
+        createdAt: existingClaim?.createdAt || serverTimestamp(),
         updatedAt: serverTimestamp()
       });
       return { earned };
@@ -245,8 +311,10 @@ checkinButton.addEventListener('click', async () => {
       : 'ဒီနေ့ ဝင်ရောက်မှု အောင်မြင်ပါသည်။ နောက်ရက်များတွင် ဆက်လက်ဝင်ရောက်ပါ။', 'success');
   } catch (error) {
     await bootstrapRewards(currentUser);
-    showNotice(error.message === 'ALREADY_CHECKED_IN'
-      ? 'ဘန်ကောက်စံတော်ချိန်အရ ဒီနေ့ ဝင်ရောက်မှု ပြုလုပ်ပြီးပါပြီ။'
+    showNotice(error.message === 'DEVICE_ALREADY_CHECKED_IN'
+      ? 'ဒီနေ့ ဤဖုန်း/browser မှ ဝင်ရောက်မှု ပြုလုပ်ပြီးပါပြီ။'
+      : error.message === 'ALREADY_CHECKED_IN'
+        ? 'ဘန်ကောက်စံတော်ချိန်အရ ဒီနေ့ ဝင်ရောက်မှု ပြုလုပ်ပြီးပါပြီ။'
       : 'ဒီနေ့ ဝင်ရောက်မှုကို သိမ်းမရပါ။ ယနေ့အတွက် မှတ်တမ်းတင်ပြီးသားဖြစ်ခြင်း သို့မဟုတ် အင်တာနက်ပြတ်တောက်ခြင်း ဖြစ်နိုင်ပါသည်။', 'error');
   } finally {
     setBusy(false);
