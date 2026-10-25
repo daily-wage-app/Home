@@ -1,12 +1,17 @@
 import {
-  auth, db, collection, doc, getDoc, getDocs, onAuthStateChanged,
+  auth, db, collection, doc, getDoc, getDocs, increment, onAuthStateChanged,
   query, runTransaction, serverTimestamp, where
 } from './firebase.js';
 import { getLanguage, t } from './i18n.js';
 
 const POINTS_PER_BAHT = 100;
 const MIN_WITHDRAWAL_BAHT = 10;
-const CHECKIN_REWARD_POINTS = 1000;
+const DAILY_CHECKIN_POINTS = 100;
+const SEVENTH_DAY_POINTS = 400;
+const SEVENTH_DAY_SPECIAL_BONUS = SEVENTH_DAY_POINTS - DAILY_CHECKIN_POINTS;
+const REFERRAL_BONUS_POINTS = 100;
+const FREE_PASS_COOLDOWN_DAYS = 30;
+const FREE_PASS_COOLDOWN_MS = FREE_PASS_COOLDOWN_DAYS * 86400000;
 const CHECKIN_CYCLE_DAYS = 7;
 const WITHDRAWAL_CONSENT_VERSION = 1;
 const TIME_ZONE = 'Asia/Bangkok';
@@ -32,12 +37,22 @@ const withdrawalConsent = document.getElementById('withdrawalConsent');
 const closeWithdrawalButton = document.getElementById('closeWithdrawalButton');
 const cancelWithdrawalButton = document.getElementById('cancelWithdrawalButton');
 const submitWithdrawalButton = document.getElementById('submitWithdrawalButton');
+const rewardLadder = document.getElementById('rewardLadder');
+const freePassStatus = document.getElementById('freePassStatus');
+const freePassDescription = document.getElementById('freePassDescription');
+const achievementBadges = document.getElementById('achievementBadges');
+const referralCount = document.getElementById('referralCount');
+const shareReferralButton = document.getElementById('shareReferralButton');
+const rewardSoundToggle = document.getElementById('rewardSoundToggle');
+const rewardCelebration = document.getElementById('rewardCelebration');
 
 let currentUser = null;
 let currentWallet = null;
 let isBusy = false;
 let installationId = null;
 let deviceClaimedByAnotherUser = false;
+let qualifiedReferralCount = 0;
+const SOUND_STORAGE_KEY = 'dailyWageRewardSound';
 
 function bangkokDayKey(date) {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -117,6 +132,159 @@ function showNotice(message, type = 'info') {
   rewardNotice.hidden = !message;
 }
 
+function localizedNumber(value) {
+  return Number(value || 0).toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM');
+}
+
+function isRewardSoundEnabled() {
+  try { return localStorage.getItem(SOUND_STORAGE_KEY) === 'on'; }
+  catch (error) { return false; }
+}
+
+function renderRewardLadder() {
+  const todayChecked = isCheckedInToday();
+  const streak = Number(currentWallet?.streakCount || 0);
+  const completedCycles = Number(currentWallet?.completedSevenDayCycles || 0);
+  const visibleDay = todayChecked ? (streak || (completedCycles ? 7 : 1)) : Math.min(streak + 1, CHECKIN_CYCLE_DAYS);
+  rewardLadder.innerHTML = Array.from({ length: CHECKIN_CYCLE_DAYS }, (_, index) => {
+    const day = index + 1;
+    const points = day === CHECKIN_CYCLE_DAYS ? SEVENTH_DAY_POINTS : DAILY_CHECKIN_POINTS;
+    const classes = [
+      'reward-step',
+      day < visibleDay || (todayChecked && day === visibleDay) ? 'is-complete' : '',
+      day === visibleDay && !todayChecked ? 'is-current' : ''
+    ].filter(Boolean).join(' ');
+    return `<div class="${classes}" aria-label="${escapeHtml(t('ရက် {day}', { day: localizedNumber(day) }))}: ${escapeHtml(t('{points} မှတ်', { points: localizedNumber(points) }))}"><b>${escapeHtml(t('ရက် {day}', { day: localizedNumber(day) }))}</b><span>${escapeHtml(t('{points} မှတ်', { points: localizedNumber(points) }))}</span></div>`;
+  }).join('');
+}
+
+function renderFreePass() {
+  const lastUsed = asDate(currentWallet?.lastFreePassAt);
+  const available = !lastUsed || Date.now() - lastUsed.getTime() >= FREE_PASS_COOLDOWN_MS;
+  const nextUse = lastUsed ? new Date(lastUsed.getTime() + FREE_PASS_COOLDOWN_MS) : null;
+  const dateText = nextUse
+    ? new Intl.DateTimeFormat(getLanguage() === 'en' ? 'en-US' : 'my-MM', { timeZone: TIME_ZONE, month: 'short', day: 'numeric' }).format(nextUse)
+    : '';
+  const gap = currentWallet?.lastCheckInAt ? dayDifference(new Date(), asDate(currentWallet.lastCheckInAt)) : 0;
+  freePassStatus.textContent = !currentWallet ? '—' : available ? t('အသင့်ရှိ') : dateText;
+  freePassDescription.textContent = available
+    ? gap === 2
+      ? t('ဒီနေ့ဝင်ရောက်ပါက Free Pass သုံး၍ ရက်ဆက်မှုကို ထိန်းပေးမည်')
+      : t('ရက် ၃၀ တစ်ကြိမ် · တစ်ရက်လွတ်လျှင် streak ကို ထိန်းပေးမည်')
+    : t('နောက်တစ်ကြိမ် ရနိုင်မည့်ရက်: {date}', { date: dateText });
+}
+
+function renderBadges() {
+  const total = Number(currentWallet?.totalCheckIns || 0);
+  const streak = Number(currentWallet?.streakCount || 0);
+  const cycles = Number(currentWallet?.completedSevenDayCycles || 0);
+  const badges = [
+    { icon: '🌱', title: 'ပထမဆုံး check-in', detail: 'ပထမနေ့ကို ပြီးမြောက်စေပါ', earned: total >= 1 },
+    { icon: '🔥', title: '၅ ရက်ဆက်တိုက်', detail: 'ရက် ၅ ရက်အထိ မပျက်မကွက်', earned: streak >= 5 || cycles > 0 },
+    { icon: '🏅', title: '၇ ရက်အောင်မြင်သူ', detail: 'ဆု ၁,၀၀၀ မှတ် ပြည့်မီပါ', earned: cycles > 0 },
+    { icon: '💪', title: 'check-in ၃၀ ကြိမ်', detail: 'စုစုပေါင်း ရက် ၃၀ ဝင်ပါ', earned: total >= 30 },
+    { icon: '🤝', title: 'မိတ်ဆွေဖိတ်ခေါ်သူ', detail: 'မိတ်ဆွေ ၇ ရက်ပြည့်ပါ', earned: qualifiedReferralCount > 0 },
+    { icon: '⏱️', title: 'အချိန်မှန်အလုပ်သမား', detail: 'အတည်ပြုထားသော အလုပ်မှတ်တမ်းလိုသည်', earned: false },
+    { icon: '🏆', title: 'Top Earner', detail: 'အတည်ပြုထားသော လုပ်အားခဒေတာလိုသည်', earned: false }
+  ];
+  achievementBadges.innerHTML = badges.map(badge => `<div class="achievement-badge${badge.earned ? ' is-earned' : ''}" title="${escapeHtml(t(badge.detail))}"><span class="badge-icon" aria-hidden="true">${badge.icon}</span><strong>${escapeHtml(t(badge.title))}</strong><small>${escapeHtml(t(badge.earned ? 'ရရှိပြီး' : badge.detail))}</small></div>`).join('');
+}
+
+async function refreshReferralCount() {
+  if (!currentUser) {
+    qualifiedReferralCount = 0;
+    renderBadges();
+    return;
+  }
+  const userId = currentUser.uid;
+  try {
+    const snapshot = await getDocs(query(collection(db, 'referralClaims'), where('inviterUid', '==', userId), where('status', '==', 'awarded')));
+    if (currentUser?.uid !== userId) return;
+    qualifiedReferralCount = snapshot.size;
+  } catch (error) {
+    qualifiedReferralCount = 0;
+  }
+  referralCount.textContent = t('{count} ဦး မိတ်ဆွေ ၇ ရက် check-in ပြည့် · {points} မှတ် ရရှိပြီး', {
+    count: localizedNumber(qualifiedReferralCount), points: localizedNumber(qualifiedReferralCount * REFERRAL_BONUS_POINTS)
+  });
+  renderBadges();
+}
+
+async function shareReferralLink() {
+  if (!currentUser) return;
+  const inviteUrl = new URL(window.location.href);
+  inviteUrl.search = '';
+  inviteUrl.hash = '';
+  inviteUrl.searchParams.set('ref', currentUser.uid);
+  const shareData = {
+    title: 'Daily Wage',
+    text: t('Daily Wage တွင် မိတ်ဆွေအဖြစ် join လုပ်ပါ။ ကျွန်ုပ်တို့နှစ်ဦးစလုံး ၇ ရက် check-in ပြည့်ပါက ၁၀၀ မှတ်စီ ရပါမည်။'),
+    url: inviteUrl.toString()
+  };
+  try {
+    if (navigator.share) await navigator.share(shareData);
+    else if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(inviteUrl.toString());
+      showNotice(t('ဖိတ်ခေါ်လင့်ခ်ကို ကူးယူပြီးပါပြီ။'), 'success');
+    } else {
+      throw new Error('Sharing is unavailable');
+    }
+  } catch (error) {
+    if (error?.name !== 'AbortError') showNotice(t('ဖိတ်ခေါ်လင့်ခ် မပို့နိုင်ပါ။ လင့်ခ်ကို ပြန်စမ်းပါ။'), 'error');
+  }
+}
+
+function celebrateReward() {
+  if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    const colors = ['#b8f2d1', '#79dcff', '#ffdf70', '#ffffff', '#ff91c8'];
+    const pieces = Array.from({ length: 42 }, () => {
+      const piece = document.createElement('i');
+      piece.className = 'confetti-piece';
+      piece.style.left = `${Math.random() * 100}%`;
+      piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.setProperty('--drift', `${Math.round((Math.random() - .5) * 220)}px`);
+      piece.style.animationDelay = `${Math.random() * .32}s`;
+      rewardCelebration.append(piece);
+      window.setTimeout(() => piece.remove(), 2400);
+      return piece;
+    });
+    if (!pieces.length) return;
+  }
+  if (!isRewardSoundEnabled()) return;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    [660, 880, 1100].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(.0001, context.currentTime + index * .1);
+      gain.gain.exponentialRampToValueAtTime(.08, context.currentTime + index * .1 + .02);
+      gain.gain.exponentialRampToValueAtTime(.0001, context.currentTime + index * .1 + .18);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start(context.currentTime + index * .1);
+      oscillator.stop(context.currentTime + index * .1 + .2);
+    });
+    window.setTimeout(() => context.close(), 600);
+  } catch (error) {
+    // Some mobile browsers require a separate user gesture before sound is available.
+  }
+}
+
+function renderRewardExtras() {
+  renderRewardLadder();
+  renderFreePass();
+  renderBadges();
+  shareReferralButton.disabled = !currentUser || !currentWallet;
+  referralCount.textContent = t('{count} ဦး မိတ်ဆွေ ၇ ရက် check-in ပြည့် · {points} မှတ် ရရှိပြီး', {
+    count: localizedNumber(qualifiedReferralCount), points: localizedNumber(qualifiedReferralCount * REFERRAL_BONUS_POINTS)
+  });
+  rewardSoundToggle.setAttribute('aria-pressed', String(isRewardSoundEnabled()));
+  rewardSoundToggle.textContent = t(isRewardSoundEnabled() ? 'အသံဖွင့်ထားသည်' : 'အသံပိတ်ထားသည်');
+}
+
 function setWithdrawalError(message) {
   withdrawalError.dataset.sourceMessage = message;
   withdrawalError.textContent = t(message);
@@ -148,6 +316,7 @@ function renderWallet() {
     checkinMessage.textContent = t('ကိုယ်ရေးအချက်အလက်ကို သိမ်းဆည်းပြီးနောက် ထပ်မံဝင်ရောက်ပါ။');
     checkinButton.disabled = true;
     withdrawButton.disabled = true;
+    renderRewardExtras();
     return;
   }
 
@@ -159,19 +328,20 @@ function renderWallet() {
   document.getElementById('rewardProgressFill').style.width = `${Math.min(100, (streak / CHECKIN_CYCLE_DAYS) * 100)}%`;
 
   if (isCheckedInToday()) {
-    checkinMessage.textContent = t('ဒီနေ့ ဝင်ရောက်မှု မှတ်တမ်းတင်ပြီးပါပြီ။ နောက်တစ်ကြိမ်ကို ဘန်ကောက်စံတော်ချိန်အရ မနက်ဖြန်မှ ပြုလုပ်နိုင်ပါမည်။');
+      checkinMessage.textContent = t('ဒီနေ့ဝင်ရောက်မှု မှတ်တမ်းတင်ပြီးပါပြီ။ နောက်တစ်ကြိမ်ကို ဘန်ကောက်စံတော်ချိန်အရ မနက်ဖြန်မှ ပြုလုပ်နိုင်ပါမည်။');
   } else if (deviceClaimedByAnotherUser) {
     checkinMessage.textContent = t('ဒီနေ့ ဤဖုန်း/browser မှ ဝင်ရောက်မှုကို အခြားအကောင့်ဖြင့် ရယူပြီးပါပြီ။ မနက်ဖြန်မှ ပြန်ဝင်နိုင်ပါမည်။');
   } else if (!installationId) {
     checkinMessage.textContent = t('ဤ browser တွင် လုံခြုံသောစက် ID ကို သိမ်းမရပါ။ စက်၏ storage ကို ဖွင့်ပြီး ပြန်စမ်းပါ။');
   } else {
-    checkinMessage.textContent = t('ဤဖုန်း/browser တပ်ဆင်မှုမှ တစ်နေ့တစ်ကြိမ်သာ ဝင်ရောက်နိုင်ပါသည်။ {days} ရက်ဆက်တိုက် ဝင်ရောက်ပါက {points} မှတ် ရရှိပါမည်။', {
+    checkinMessage.textContent = t('တစ်နေ့တစ်ကြိမ် ဝင်ရောက်ပါ။ ယနေ့ဝင်ရောက်လျှင် {points} မှတ်ရမည်။ {days} ရက်မြောက်တွင် ၄၀၀ မှတ်ရရှိပြီး တစ်ပတ်စုစုပေါင်း ၁,၀၀၀ မှတ်ဖြစ်သည်။', {
       days: CHECKIN_CYCLE_DAYS.toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM'),
-      points: CHECKIN_REWARD_POINTS.toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM')
+      points: localizedNumber(streak + 1 === CHECKIN_CYCLE_DAYS ? SEVENTH_DAY_POINTS : DAILY_CHECKIN_POINTS)
     });
   }
   checkinButton.disabled = isBusy || isCheckedInToday() || deviceClaimedByAnotherUser || !currentUser || !installationId;
   withdrawButton.disabled = isBusy || withdrewToday() || points < MIN_WITHDRAWAL_BAHT * POINTS_PER_BAHT || !currentUser;
+  renderRewardExtras();
 }
 
 async function renderHistory() {
@@ -208,12 +378,98 @@ async function renderHistory() {
   }
 }
 
+async function awardInviteeReferral(user) {
+  if (!user) return false;
+  const walletRef = doc(db, 'rewardWallets', user.uid);
+  const claimRef = doc(db, 'referralClaims', user.uid);
+  try {
+    return await runTransaction(db, async transaction => {
+      const [walletSnapshot, claimSnapshot] = await Promise.all([
+        transaction.get(walletRef), transaction.get(claimRef)
+      ]);
+      if (!walletSnapshot.exists() || !claimSnapshot.exists() || claimSnapshot.data().status !== 'pending') return false;
+      const wallet = walletSnapshot.data();
+      if (Number(wallet.completedSevenDayCycles || 0) < 1 || !wallet.lastSevenDayCycleAt) return false;
+      const timestamp = serverTimestamp();
+      transaction.update(walletRef, {
+        pointsBalance: increment(REFERRAL_BONUS_POINTS),
+        updatedAt: timestamp
+      });
+      transaction.update(claimRef, { status: 'invitee_awarded', updatedAt: timestamp, awardedAt: timestamp });
+      return true;
+    });
+  } catch (error) {
+    // Leave an eligible claim pending for the next bootstrap if the network is unavailable.
+    return false;
+  }
+}
+
+async function claimPendingReferralBonuses(user) {
+  if (!user) return 0;
+  let claimed = 0;
+  try {
+    const pending = await getDocs(query(
+      collection(db, 'referralClaims'),
+      where('inviterUid', '==', user.uid),
+      where('status', '==', 'invitee_awarded')
+    ));
+    for (const referralDoc of pending.docs) {
+      const claimRef = doc(db, 'referralClaims', referralDoc.id);
+      const walletRef = doc(db, 'rewardWallets', user.uid);
+      const didClaim = await runTransaction(db, async transaction => {
+        const [walletSnapshot, claimSnapshot] = await Promise.all([
+          transaction.get(walletRef), transaction.get(claimRef)
+        ]);
+        if (!walletSnapshot.exists() || !claimSnapshot.exists() || claimSnapshot.data().status !== 'invitee_awarded') return false;
+        const timestamp = serverTimestamp();
+        transaction.update(walletRef, {
+          pointsBalance: increment(REFERRAL_BONUS_POINTS),
+          lastReferralClaimId: referralDoc.id,
+          lastReferralClaimAt: timestamp,
+          updatedAt: timestamp
+        });
+        transaction.update(claimRef, { status: 'awarded', updatedAt: timestamp, awardedAt: timestamp });
+        return true;
+      });
+      if (didClaim) claimed += 1;
+    }
+  } catch (error) {
+    // A denied/read-failed referral stays pending and can be retried next time.
+  }
+  return claimed;
+}
+
+async function ensureReferralClaim(user) {
+  if (!user) return;
+  const profileRef = doc(db, 'userProfiles', user.uid);
+  const referralRef = doc(db, 'referralClaims', user.uid);
+  try {
+    await runTransaction(db, async transaction => {
+      const [profileSnapshot, referralSnapshot] = await Promise.all([
+        transaction.get(profileRef), transaction.get(referralRef)
+      ]);
+      if (!profileSnapshot.exists() || referralSnapshot.exists()) return;
+      const inviterUid = profileSnapshot.data().referredByUid || '';
+      if (!inviterUid) return;
+      const timestamp = serverTimestamp();
+      transaction.set(referralRef, {
+        inviteeUid: user.uid, inviterUid, status: 'pending', rewardPoints: REFERRAL_BONUS_POINTS,
+        createdAt: timestamp, updatedAt: timestamp, awardedAt: null
+      });
+    });
+  } catch (error) {
+    // Retry at the next bootstrap if signup bookkeeping is temporarily unavailable.
+  }
+}
+
 async function bootstrapRewards(user) {
   if (!user || !user.isAnonymous) {
     currentUser = null;
     currentWallet = null;
     deviceClaimedByAnotherUser = false;
+    qualifiedReferralCount = 0;
     renderWallet();
+    await refreshReferralCount();
     await renderHistory();
     return;
   }
@@ -239,8 +495,15 @@ async function bootstrapRewards(user) {
           uid: user.uid,
           pointsBalance: 0,
           streakCount: 0,
+          totalCheckIns: 0,
+          completedSevenDayCycles: 0,
+          lastSevenDayCycleAt: null,
           lastCheckInAt: null,
           lastCheckInDeviceId: null,
+          lastFreePassAt: null,
+          lastSevenDayCycleAt: null,
+          lastReferralClaimId: null,
+          lastReferralClaimAt: null,
           lastWithdrawalAt: null,
           lastWithdrawalRequestId: null,
           lastRefundRequestId: null,
@@ -249,6 +512,9 @@ async function bootstrapRewards(user) {
         });
       }
     });
+    await ensureReferralClaim(user);
+    const inviteeReferralAwarded = await awardInviteeReferral(user);
+    const referralBonusesClaimed = await claimPendingReferralBonuses(user);
     const walletSnapshot = await getDoc(walletRef);
     if (currentUser?.uid !== userId) return;
     currentWallet = walletSnapshot.exists() ? walletSnapshot.data() : null;
@@ -261,6 +527,17 @@ async function bootstrapRewards(user) {
       );
     }
     renderWallet();
+    await refreshReferralCount();
+    if (referralBonusesClaimed) {
+      showNotice(t('မိတ်ဆွေ ၇ ရက်ပြည့်သည့်ဆုအဖြစ် {points} မှတ် အလိုအလျောက်ရရှိပါပြီ။', {
+        points: localizedNumber(referralBonusesClaimed * REFERRAL_BONUS_POINTS)
+      }), 'success');
+    }
+    if (inviteeReferralAwarded) {
+      showNotice(t('၇ ရက်ဆက်တိုက်ဝင်ရောက်မှု အောင်မြင်သည့်အတွက် မိတ်ဆွေဖိတ်ခေါ်ဆု {points} မှတ် ရရှိပါပြီ။', {
+        points: localizedNumber(REFERRAL_BONUS_POINTS)
+      }), 'success');
+    }
     await renderHistory();
   } catch (error) {
     if (currentUser?.uid !== userId) return;
@@ -270,12 +547,24 @@ async function bootstrapRewards(user) {
   }
 }
 
+shareReferralButton.addEventListener('click', shareReferralLink);
+rewardSoundToggle.addEventListener('click', () => {
+  try {
+    const next = isRewardSoundEnabled() ? 'off' : 'on';
+    localStorage.setItem(SOUND_STORAGE_KEY, next);
+    renderRewardExtras();
+  } catch (error) {
+    showNotice(t('ဤ browser တွင် အသံရွေးချယ်မှုကို သိမ်းဆည်း၍မရပါ။'), 'error');
+  }
+});
+
 checkinButton.addEventListener('click', async () => {
   if (!currentUser || !currentWallet || isBusy || !installationId || deviceClaimedByAnotherUser) return;
   setBusy(true);
   showNotice('');
   try {
-    const walletRef = doc(db, 'rewardWallets', currentUser.uid);
+    const userId = currentUser.uid;
+    const walletRef = doc(db, 'rewardWallets', userId);
     const result = await runTransaction(db, async transaction => {
       const dayNumber = bangkokDayNumber(new Date());
       const claimRef = deviceClaimRef();
@@ -294,14 +583,25 @@ checkinButton.addEventListener('click', async () => {
       const last = asDate(wallet.lastCheckInAt);
       const elapsedDays = last ? dayDifference(new Date(), last) : -1;
       if (last && elapsedDays <= 0) throw new Error('ALREADY_CHECKED_IN');
-      const nextStreak = !last || elapsedDays > 1 ? 1 : Number(wallet.streakCount || 0) + 1;
-      const earned = nextStreak === CHECKIN_CYCLE_DAYS;
+      const lastFreePassAt = asDate(wallet.lastFreePassAt);
+      const freePassAvailable = !lastFreePassAt || Date.now() - lastFreePassAt.getTime() >= FREE_PASS_COOLDOWN_MS;
+      const usedFreePass = Boolean(last && elapsedDays === 2 && Number(wallet.streakCount || 0) > 0 && freePassAvailable);
+      const streakReset = Boolean(last && elapsedDays > 1 && !usedFreePass);
+      const previousStreak = Number(wallet.streakCount || 0);
+      const nextStreak = !last || streakReset ? 1 : previousStreak + 1;
+      const completedCycle = nextStreak === CHECKIN_CYCLE_DAYS;
+      const dailyPoints = completedCycle ? SEVENTH_DAY_POINTS : DAILY_CHECKIN_POINTS;
+      const timestamp = serverTimestamp();
       transaction.update(walletRef, {
-        pointsBalance: Number(wallet.pointsBalance || 0) + (earned ? CHECKIN_REWARD_POINTS : 0),
-        streakCount: earned ? 0 : nextStreak,
-        lastCheckInAt: serverTimestamp(),
+        pointsBalance: Number(wallet.pointsBalance || 0) + dailyPoints,
+        streakCount: completedCycle ? 0 : nextStreak,
+        totalCheckIns: Number(wallet.totalCheckIns || 0) + 1,
+        completedSevenDayCycles: Number(wallet.completedSevenDayCycles || 0) + (completedCycle ? 1 : 0),
+        lastSevenDayCycleAt: completedCycle ? timestamp : (wallet.lastSevenDayCycleAt || null),
+        lastCheckInAt: timestamp,
         lastCheckInDeviceId: installationId,
-        updatedAt: serverTimestamp()
+        lastFreePassAt: usedFreePass ? timestamp : (wallet.lastFreePassAt || null),
+        updatedAt: timestamp
       });
       transaction.set(claimRef, {
         uid: currentUser.uid,
@@ -310,12 +610,17 @@ checkinButton.addEventListener('click', async () => {
         createdAt: existingClaim?.createdAt || serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-      return { earned };
+      return { completedCycle, dailyPoints, usedFreePass, streakReset };
     });
+    const inviteeReferralAwarded = await awardInviteeReferral(currentUser);
     await bootstrapRewards(currentUser);
-    showNotice(result.earned
-      ? t('ဂုဏ်ယူပါတယ်။ {points} မှတ် ထပ်ရရှိပါပြီ။', { points: CHECKIN_REWARD_POINTS.toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM') })
-      : t('ဒီနေ့ ဝင်ရောက်မှု အောင်မြင်ပါသည်။ နောက်ရက်များတွင် ဆက်လက်ဝင်ရောက်ပါ။'), 'success');
+    const messages = [t('ဒီနေ့ဝင်ရောက်မှု အောင်မြင်ပါသည်။ {points} မှတ်ရရှိပါပြီ။', { points: localizedNumber(result.dailyPoints + (inviteeReferralAwarded ? REFERRAL_BONUS_POINTS : 0)) })];
+    if (result.completedCycle) messages.push(t('၇ ရက်စက်ဝန်းအထူးဆု +{points} မှတ်။', { points: localizedNumber(SEVENTH_DAY_SPECIAL_BONUS) }));
+    if (result.usedFreePass) messages.push(t('Free Pass ကို သုံးလိုက်ပါပြီ။ နောက်တစ်ကြိမ် ရက် ၃၀ ပြည့်မှ အသုံးပြုနိုင်ပါမည်။'));
+    if (result.streakReset) messages.push(t('တစ်ရက်လွတ်သွားသောကြောင့် streak ကို ပြန်စတင်ပါသည်။'));
+    if (inviteeReferralAwarded) messages.push(t('၇ ရက်ဆက်တိုက်ဝင်ရောက်မှု အောင်မြင်သည့်အတွက် မိတ်ဆွေဖိတ်ခေါ်ဆု ၁၀၀ မှတ် ရရှိပါပြီ။'));
+    showNotice(messages.join(' '), 'success');
+    celebrateReward();
   } catch (error) {
     await bootstrapRewards(currentUser);
     showNotice(error.message === 'DEVICE_ALREADY_CHECKED_IN'
@@ -458,6 +763,9 @@ withdrawalForm.addEventListener('submit', async event => {
 onAuthStateChanged(auth, user => { void bootstrapRewards(user); });
 window.addEventListener('dailywage-profile-saved', () => {
   if (auth.currentUser) void bootstrapRewards(auth.currentUser);
+});
+window.addEventListener('focus', () => {
+  if (auth.currentUser?.isAnonymous) void bootstrapRewards(auth.currentUser);
 });
 window.addEventListener('dailywage-language-changed', () => {
   renderWallet();

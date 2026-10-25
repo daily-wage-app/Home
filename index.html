@@ -774,6 +774,35 @@
     .reward-withdraw-button { background: #fff; color: #164c72; }
     .reward-actions button:disabled { cursor: not-allowed; opacity: .55; }
     .reward-note { margin: 11px 0 0; color: #cbe8fa; font-size: 11px; line-height: 1.5; }
+    .reward-extras { display:grid; gap:12px; margin-top:12px; }
+    .reward-panel { padding:14px; border:1px solid rgba(255,255,255,.16); border-radius:14px; background:rgba(5,26,47,.26); }
+    .reward-panel h3 { margin:0 0 9px; color:#fff; font-size:13px; }
+    .reward-ladder { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; }
+    .reward-step { min-width:0; padding:8px 3px; border:1px solid rgba(255,255,255,.16); border-radius:9px; background:rgba(255,255,255,.08); text-align:center; }
+    .reward-step.is-current { border-color:#b8f2d1; background:rgba(184,242,209,.2); box-shadow:inset 0 0 0 1px #b8f2d1; }
+    .reward-step.is-complete { background:rgba(184,242,209,.13); }
+    .reward-step b,.reward-step span { display:block; }
+    .reward-step b { color:#d8eeff; font-size:10px; }
+    .reward-step span { margin-top:4px; color:#fff; font-size:9px; }
+    .reward-step:last-child span { color:#b8f2d1; font-weight:900; }
+    .freepass-line { display:flex; align-items:center; justify-content:space-between; gap:10px; color:#e4f3ff; font-size:11px; line-height:1.45; }
+    .freepass-pill { flex:0 0 auto; padding:6px 9px; border-radius:99px; background:rgba(255,255,255,.13); color:#fff; font-size:10px; font-weight:850; }
+    .badge-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+    .achievement-badge { display:grid; align-content:start; gap:3px; min-height:78px; padding:8px 6px; border:1px solid rgba(255,255,255,.14); border-radius:11px; background:rgba(255,255,255,.07); text-align:center; }
+    .achievement-badge.is-earned { border-color:rgba(184,242,209,.65); background:rgba(184,242,209,.16); }
+    .badge-icon { font-size:19px; line-height:1.1; }
+    .achievement-badge strong { color:#fff; font-size:9px; line-height:1.35; }
+    .achievement-badge small { color:#d1e5f5; font-size:8px; line-height:1.3; }
+    .referral-panel { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .referral-copy { min-width:0; }
+    .referral-copy p { margin:4px 0 0; color:#d5eaff; font-size:10px; line-height:1.45; }
+    .referral-count { display:block; color:#b8f2d1; font-size:10px; font-weight:800; }
+    .referral-share-button,.reward-sound-button { min-height:36px; flex:0 0 auto; border:1px solid rgba(255,255,255,.35); border-radius:10px; padding:7px 10px; background:rgba(255,255,255,.13); color:white; font:inherit; font-size:10px; font-weight:850; cursor:pointer; }
+    .reward-tools { display:flex; justify-content:flex-end; margin-top:8px; }
+    .reward-sound-button[aria-pressed="true"] { border-color:#b8f2d1; color:#b8f2d1; }
+    .reward-celebration { position:fixed; inset:0; z-index:1150; pointer-events:none; overflow:hidden; }
+    .confetti-piece { position:absolute; top:-14px; width:8px; height:12px; border-radius:2px; animation:confettiFall 1.8s cubic-bezier(.2,.65,.5,1) forwards; }
+    @keyframes confettiFall { to { transform:translate3d(var(--drift),105vh,0) rotate(720deg); opacity:0; } }
     .reward-notice { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: #eef7ff; color: #174c72; font-size: 12px; line-height: 1.5; }
     .reward-notice[data-type="error"] { background: #fff1f0; color: #a52b25; }
     .reward-notice[data-type="success"] { background: #eaf8ef; color: #17643a; }
@@ -1064,6 +1093,11 @@
             <label for="email">အီးမေးလ် <span style="font-weight: 500; color: #888;">(မဖြစ်မနေ မဟုတ်ပါ)</span></label>
             <input id="email" name="email" type="email" autocomplete="email" maxlength="160" placeholder="you@example.com" />
           </div>
+          <div class="profile-field">
+            <label for="referralCodeInput" data-menu-my="ဖိတ်ခေါ်ကုဒ် (ရှိပါက)" data-menu-en="Invite code (optional)">ဖိတ်ခေါ်ကုဒ် (ရှိပါက)</label>
+            <input id="referralCodeInput" name="referralCode" type="text" inputmode="text" maxlength="28" autocomplete="off" placeholder="DW-…" aria-describedby="referralCodeHelp" />
+            <small id="referralCodeHelp" data-menu-my="ဖိတ်ခေါ်သူနှင့် သင် နှစ်ဦးစလုံး ၇ ရက်တာ check-in ပြည့်ပါက ၁၀၀ မှတ်စီရပါမည်။ စတင်အသုံးပြုပြီးနောက် ကုဒ်ကို ပြောင်း၍မရပါ။" data-menu-en="You and your inviter each earn 100 points after you complete seven valid check-ins. This code cannot be changed after signup.">ဖိတ်ခေါ်သူနှင့် သင် နှစ်ဦးစလုံး ၇ ရက်တာ check-in ပြည့်ပါက ၁၀၀ မှတ်စီရပါမည်။ စတင်အသုံးပြုပြီးနောက် ကုဒ်ကို ပြောင်း၍မရပါ။</small>
+          </div>
         </div>
 
         <fieldset class="profile-fieldset">
@@ -1276,9 +1310,29 @@
           <button class="reward-checkin-button" id="dailyCheckinButton" type="button" disabled>ဒီနေ့ ဝင်ရောက်မည်</button>
           <button class="reward-withdraw-button" id="openWithdrawalButton" type="button" disabled>TrueMoney မှ ထုတ်ယူမည်</button>
         </div>
-        <p class="reward-note">ဤဖုန်း၏ app/browser တပ်ဆင်မှုတစ်ခုမှ တစ်နေ့တစ်ကြိမ်သာ ဝင်ရောက်နိုင်ပါသည် · ၇ ရက်ဆက်တိုက် ဝင်ရောက်ပါက အမှတ် ၁,၀၀၀ ရရှိမည် · အမှတ် ၁,၀၀၀ = ၁၀ ဘတ် · ဘန်ကောက်စံတော်ချိန်ဖြင့် တွက်ချက်သည်။</p>
+        <div class="reward-extras">
+          <section class="reward-panel" aria-labelledby="rewardLadderTitle">
+            <h3 id="rewardLadderTitle" data-menu-my="နေ့စဉ်ဆုအဆင့်များ" data-menu-en="Daily reward ladder">နေ့စဉ်ဆုအဆင့်များ</h3>
+            <div class="reward-ladder" id="rewardLadder" aria-label="Daily reward schedule"></div>
+          </section>
+          <section class="reward-panel" aria-label="Free pass status">
+            <div class="freepass-line"><span><strong data-menu-my="Free Pass" data-menu-en="Free pass">Free Pass</strong> · <span id="freePassDescription">တစ်ရက်လွတ်သွားပါက ရက်ဆက်မှုကို ကာကွယ်ပေးသည်</span></span><span class="freepass-pill" id="freePassStatus">—</span></div>
+          </section>
+          <section class="reward-panel" aria-labelledby="achievementTitle">
+            <h3 id="achievementTitle" data-menu-my="အောင်မြင်မှုတံဆိပ်များ" data-menu-en="Achievement badges">အောင်မြင်မှုတံဆိပ်များ</h3>
+            <div class="badge-grid" id="achievementBadges" aria-live="polite"></div>
+          </section>
+          <section class="reward-panel referral-panel" aria-labelledby="referralTitle">
+            <div class="referral-copy"><h3 id="referralTitle" data-menu-my="မိတ်ဆွေကို ဖိတ်ခေါ်ပါ" data-menu-en="Invite a friend">မိတ်ဆွေကို ဖိတ်ခေါ်ပါ</h3><span class="referral-count" id="referralCount">မိတ်ဆွေကို ဖိတ်ခေါ်ပြီး နှစ်ဦးစလုံး ၁၀၀ မှတ် ရယူပါ</span><p id="referralRulesText">မိတ်ဆွေက ၇ ရက်တရားဝင် check-in ပြည့်မှ ဆုရမည်။</p></div>
+            <button class="referral-share-button" id="shareReferralButton" type="button" disabled>ဖိတ်ခေါ်ရန်</button>
+          </section>
+          <p class="reward-note" id="rewardPolicyNote">နေ့ ၁–၆ တွင် တစ်ရက် ၁၀၀ မှတ်၊ နေ့ ၇ တွင် စုစုပေါင်း ၄၀၀ မှတ် (၃၀၀ အထူးဆုအပါအဝင်) ရရှိသည်။ ၇ ရက်စက်ဝန်းစုစုပေါင်း = ၁,၀၀၀ မှတ်။ Free Pass ကို ရက် ၃၀ တစ်ကြိမ်သာ သုံးနိုင်သည်။</p>
+          <p class="reward-note" id="milestoneNote">တံဆိပ်များကို စစ်ဆေးပြီးသော check-in/referral မှတ်တမ်းအပေါ်သာ ပေးမည်။ အလုပ်ဝင်ငွေမှတ်တမ်း မချိတ်ဆက်ရသေးသဖြင့် “Top Earner” နှင့် “Punctual Worker” တံဆိပ်များကို လက်ရှိ မရနိုင်သေးပါ။</p>
+        </div>
+        <div class="reward-tools"><button class="reward-sound-button" id="rewardSoundToggle" type="button" aria-pressed="false">အသံပိတ်ထားသည်</button></div>
       </section>
       <div class="reward-notice" id="rewardNotice" role="status" aria-live="polite" hidden></div>
+      <div class="reward-celebration" id="rewardCelebration" aria-hidden="true"></div>
 
       <section class="reward-history" id="withdrawalHistorySection" aria-labelledby="withdrawalHistoryTitle">
         <h3 id="withdrawalHistoryTitle">ငွေထုတ်တောင်းဆိုမှုမှတ်တမ်း</h3>
@@ -1511,6 +1565,10 @@
       document.getElementById('country').value = profile.country || '';
       document.getElementById('phone').value = profile.phone || '';
       document.getElementById('email').value = profile.email || '';
+      const referralInput = document.getElementById('referralCodeInput');
+      const referralFromLink = new URLSearchParams(window.location.search).get('ref');
+      referralInput.value = profile.referredByUid || (referralFromLink && /^[A-Za-z0-9]{28}$/.test(referralFromLink) ? referralFromLink : '');
+      referralInput.readOnly = Boolean(profile.firebaseUid || profile.referredByUid);
       document.querySelectorAll('input[name="gender"]').forEach(radio => {
         radio.checked = radio.value === profile.gender;
       });
@@ -1669,7 +1727,8 @@
         country: String(formData.get('country') || ''),
         gender: String(formData.get('gender') || ''),
         phone: String(formData.get('phone') || '').trim(),
-        email: String(formData.get('email') || '').trim().toLowerCase()
+        email: String(formData.get('email') || '').trim().toLowerCase(),
+        referredByUid: String(formData.get('referralCode') || '').trim()
       };
     }
 
@@ -1683,6 +1742,12 @@
       const profileRef = doc(db, 'userProfiles', user.uid);
       const previous = await getDoc(profileRef);
       const oldData = previous.exists() ? previous.data() : null;
+      const submittedReferral = String(profile.referredByUid || '').trim();
+      if (!oldData && submittedReferral && !/^[A-Za-z0-9]{28}$/.test(submittedReferral)) {
+        throw new Error('ဖိတ်ခေါ်ကုဒ် မမှန်ပါ။');
+      }
+      if (submittedReferral === user.uid) throw new Error('ကိုယ့်ဖိတ်ခေါ်ကုဒ်ကို ကိုယ်တိုင်အသုံးပြု၍မရပါ။');
+      const referredByUid = oldData?.referredByUid || (oldData ? '' : submittedReferral);
       const profileDocument = {
         uid: user.uid,
         fullName: profile.fullName,
@@ -1693,13 +1758,14 @@
         email: profile.email,
         consentVersion: 1,
         source: 'daily-wage-app/Home',
+        ...(referredByUid ? { referredByUid } : {}),
         createdAt: oldData?.createdAt || serverTimestamp(),
         consentedAt: oldData?.consentedAt || serverTimestamp(),
         updatedAt: serverTimestamp()
       };
 
       await setDoc(profileRef, profileDocument);
-      return { status: 'synced', uid: user.uid };
+      return { status: 'synced', uid: user.uid, referredByUid };
     }
 
     profileForm.addEventListener('submit', async event => {
@@ -1723,6 +1789,7 @@
         const result = await saveProfile(profile);
       const storedProfile = {
           ...profile,
+          referredByUid: result.referredByUid || '',
           clientId,
           firebaseUid: result.uid,
           consentedAt: existingProfile.consentedAt || submittedAt,

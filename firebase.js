@@ -1,7 +1,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import {
-  getFirestore, doc, getDoc, setDoc, serverTimestamp,
+  getFirestore, doc, getDoc, setDoc, serverTimestamp, increment,
   collection, getDocs, query, where, runTransaction
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { firebaseConfig } from './firebase-config.js';
@@ -12,5 +12,5 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export {
   signInAnonymously, onAuthStateChanged,
-  doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, where, runTransaction
+  doc, getDoc, setDoc, serverTimestamp, increment, collection, getDocs, query, where, runTransaction
 };
