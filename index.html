@@ -25,6 +25,8 @@
       padding: 20px 16px;
       padding-bottom: 40px;
       color: white;
+      position: relative;
+      z-index: 5;
     }
 
     .header-top {
@@ -81,11 +83,90 @@
       margin-left: 8px;
     }
 
-    .search-icons svg {
-      width: 20px;
-      height: 20px;
+    .search-icon-button {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
       color: #1e88e5;
       cursor: pointer;
+    }
+
+    .search-icon-button:hover,
+    .search-icon-button[aria-expanded="true"] {
+      background: #eaf4fc;
+    }
+
+    .search-icon-button:focus-visible,
+    .quick-menu a:focus-visible,
+    .quick-menu button:focus-visible,
+    .quick-menu select:focus-visible {
+      outline: 3px solid rgba(30, 136, 229, .35);
+      outline-offset: 2px;
+    }
+
+    .search-icon-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .quick-menu[hidden] { display: none !important; }
+    .quick-menu {
+      position: absolute;
+      top: 70px;
+      right: 14px;
+      z-index: 20;
+      width: min(350px, calc(100vw - 28px));
+      max-height: min(72vh, 620px);
+      overflow-y: auto;
+      padding: 16px;
+      border: 1px solid #e1e9ef;
+      border-radius: 18px;
+      background: #fff;
+      color: #253746;
+      box-shadow: 0 18px 48px rgba(15, 47, 72, .24);
+    }
+
+    .quick-menu-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .quick-menu-brand { color: #164f75; font-size: 17px; font-weight: 850; }
+    .quick-menu-subtitle { margin-top: 3px; color: #6c7c89; font-size: 12px; line-height: 1.45; }
+    .quick-menu-close { width: 34px; height: 34px; border: 0; border-radius: 50%; background: #eef3f7; color: #425969; font-size: 20px; cursor: pointer; }
+    .quick-menu-section { margin-top: 16px; }
+    .quick-menu-section h3 { margin-bottom: 8px; color: #687a88; font-size: 11px; font-weight: 850; letter-spacing: .06em; }
+    .quick-menu-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .quick-menu-links a, .quick-menu-links button {
+      display: flex;
+      min-height: 58px;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid #e7edf2;
+      border-radius: 12px;
+      padding: 9px;
+      background: #fbfdff;
+      color: #2d4354;
+      text-align: left;
+      text-decoration: none;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .quick-menu-links a:hover, .quick-menu-links button:hover { border-color: #b8d8ed; background: #f2f9fe; }
+    .quick-menu-link-icon { display: grid; width: 30px; height: 30px; flex: 0 0 30px; place-items: center; border-radius: 9px; background: #e8f3fb; font-size: 16px; }
+    .quick-menu-feature { padding: 10px 11px; border-radius: 10px; background: #f4f8fb; color: #536979; font-size: 12px; line-height: 1.5; }
+    .quick-menu-feature + .quick-menu-feature { margin-top: 7px; }
+    .quick-menu-feature strong { color: #29485f; }
+    .quick-menu-language { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .quick-menu-language label { color: #344d60; font-size: 12px; font-weight: 800; }
+    .quick-menu-language select { min-height: 40px; max-width: 165px; border: 1px solid #d9e3eb; border-radius: 9px; padding: 7px 9px; background: #fff; color: #2d4354; font: inherit; font-size: 12px; }
+    .quick-menu-language-note { margin-top: 7px; color: #71818d; font-size: 11px; line-height: 1.45; }
+
+    @media (max-width: 480px) {
+      .quick-menu { top: 66px; right: 8px; width: min(350px, calc(100vw - 16px)); }
+      .quick-menu-links { gap: 7px; }
     }
 
     /* User Card */
@@ -901,7 +982,7 @@
     </section>
   </div>
 
-  <div class="content-wrapper">
+  <div class="content-wrapper" id="home">
     <!-- Header -->
     <div class="header">
       <!-- Search Bar -->
@@ -912,19 +993,75 @@
         </svg>
         <input type="text" placeholder="အလုပ်အကိုင် ရှာရန်" />
         <div class="search-icons">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <rect x="4" y="4" width="7" height="7"></rect>
-            <rect x="13" y="4" width="7" height="7"></rect>
-            <rect x="4" y="13" width="7" height="7"></rect>
-            <rect x="13" y="13" width="7" height="7"></rect>
-          </svg>
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="12" cy="12" r="1"></circle>
-            <circle cx="12" cy="5" r="1"></circle>
-            <circle cx="12" cy="19" r="1"></circle>
-          </svg>
+          <button class="search-icon-button" id="featuresMenuButton" type="button" aria-label="နေ့စား app လုပ်ဆောင်ချက်များ ဖွင့်ရန်" aria-expanded="false" aria-controls="quickMenu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <rect x="4" y="4" width="7" height="7"></rect>
+              <rect x="13" y="4" width="7" height="7"></rect>
+              <rect x="4" y="13" width="7" height="7"></rect>
+              <rect x="13" y="13" width="7" height="7"></rect>
+            </svg>
+          </button>
+          <button class="search-icon-button" id="moreMenuButton" type="button" aria-label="အခြားရွေးချယ်စရာများ ဖွင့်ရန်" aria-expanded="false" aria-controls="quickMenu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="12" cy="5" r="1.8"></circle>
+              <circle cx="12" cy="12" r="1.8"></circle>
+              <circle cx="12" cy="19" r="1.8"></circle>
+            </svg>
+          </button>
         </div>
       </div>
+      <aside class="quick-menu" id="quickMenu" aria-label="Daily Wage quick menu" hidden>
+        <div class="quick-menu-head">
+          <div>
+            <div class="quick-menu-brand" data-menu-my="Daily Wage" data-menu-en="Daily Wage">Daily Wage</div>
+            <p class="quick-menu-subtitle" data-menu-my="နေ့စားအလုပ်၊ ဆုလက်ဆောင်နှင့် ဝင်ငွေစီမံမှု" data-menu-en="Daily work, rewards and income planning">နေ့စားအလုပ်၊ ဆုလက်ဆောင်နှင့် ဝင်ငွေစီမံမှု</p>
+          </div>
+          <button class="quick-menu-close" id="closeQuickMenuButton" type="button" aria-label="ပိတ်ရန်">×</button>
+        </div>
+
+        <section class="quick-menu-section" aria-labelledby="quickMenuLinksHeading">
+          <h3 id="quickMenuLinksHeading" data-menu-my="အမြန်သွားရန်" data-menu-en="QUICK LINKS">အမြန်သွားရန်</h3>
+          <div class="quick-menu-links">
+            <a href="#home" data-menu-my-label="ပင်မစာမျက်နှာ" data-menu-en-label="Home">
+              <span class="quick-menu-link-icon" aria-hidden="true">⌂</span><span data-menu-my="ပင်မစာမျက်နှာ" data-menu-en="Home">ပင်မစာမျက်နှာ</span>
+            </a>
+            <a href="#all-jobs" data-menu-my-label="နေ့စားအလုပ်များ" data-menu-en-label="Daily jobs">
+              <span class="quick-menu-link-icon" aria-hidden="true">▤</span><span data-menu-my="နေ့စားအလုပ်များ" data-menu-en="Daily jobs">နေ့စားအလုပ်များ</span>
+            </a>
+            <a href="#earnings" data-menu-my-label="Smart Wage တွက်စက်" data-menu-en-label="Smart Wage calculator">
+              <span class="quick-menu-link-icon" aria-hidden="true">฿</span><span data-menu-my="Smart Wage တွက်စက်" data-menu-en="Smart Wage calculator">Smart Wage တွက်စက်</span>
+            </a>
+            <a href="#rewards" data-menu-my-label="နေ့စဉ် check-in နှင့် အမှတ်" data-menu-en-label="Daily check-in & points">
+              <span class="quick-menu-link-icon" aria-hidden="true">★</span><span data-menu-my="နေ့စဉ် check-in နှင့် အမှတ်" data-menu-en="Daily check-in & points">နေ့စဉ် check-in နှင့် အမှတ်</span>
+            </a>
+            <a href="#withdrawalHistorySection" data-menu-my-label="ဆုနှင့် ငွေထုတ်မှတ်တမ်း" data-menu-en-label="Rewards & withdrawal history">
+              <span class="quick-menu-link-icon" aria-hidden="true">↺</span><span data-menu-my="ဆုနှင့် ငွေထုတ်မှတ်တမ်း" data-menu-en="Rewards & withdrawal history">ဆုနှင့် ငွေထုတ်မှတ်တမ်း</span>
+            </a>
+            <button id="quickMenuProfileButton" type="button" data-menu-my-label="ကိုယ်ရေးအချက်အလက်" data-menu-en-label="My profile">
+              <span class="quick-menu-link-icon" aria-hidden="true">♙</span><span data-menu-my="ကိုယ်ရေးအချက်အလက်" data-menu-en="My profile">ကိုယ်ရေးအချက်အလက်</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="quick-menu-section" id="dailyWageFeatures" aria-labelledby="quickMenuFeaturesHeading">
+          <h3 id="quickMenuFeaturesHeading" data-menu-my="လုပ်ဆောင်ချက်များ" data-menu-en="FEATURES">လုပ်ဆောင်ချက်များ</h3>
+          <div class="quick-menu-feature"><strong data-menu-my="အလုပ်ရှာဖွေရန်။" data-menu-en="Find work.">အလုပ်ရှာဖွေရန်။</strong> <span data-menu-my="နေ့စားအလုပ်များကို ကြည့်ရှုပြီး စူးစမ်းနိုင်ပါသည်။" data-menu-en="Browse daily job listings.">နေ့စားအလုပ်များကို ကြည့်ရှုပြီး စူးစမ်းနိုင်ပါသည်။</span></div>
+          <div class="quick-menu-feature"><strong data-menu-my="ဆုရယူရန်။" data-menu-en="Earn rewards.">ဆုရယူရန်။</strong> <span data-menu-my="ဘန်ကောက်စံတော်ချိန်ဖြင့် နေ့စဉ် check-in လုပ်ပြီး အမှတ်စုဆောင်းပါ။" data-menu-en="Check in daily using Bangkok time and collect points.">ဘန်ကောက်စံတော်ချိန်ဖြင့် နေ့စဉ် check-in လုပ်ပြီး အမှတ်စုဆောင်းပါ။</span></div>
+          <div class="quick-menu-feature"><strong data-menu-my="ဝင်ငွေစီမံရန်။" data-menu-en="Plan income.">ဝင်ငွေစီမံရန်။</strong> <span data-menu-my="လုပ်အားခ၊ အလုပ်ရက်၊ ကုန်ကျစရိတ်နှင့် ငွေစုရည်မှန်းချက်ကို တွက်ချက်ပါ။" data-menu-en="Estimate wages, expenses and savings goals.">လုပ်အားခ၊ အလုပ်ရက်၊ ကုန်ကျစရိတ်နှင့် ငွေစုရည်မှန်းချက်ကို တွက်ချက်ပါ။</span></div>
+          <div class="quick-menu-feature"><strong data-menu-my="မှတ်တမ်းစစ်ရန်။" data-menu-en="Review history.">မှတ်တမ်းစစ်ရန်။</strong> <span data-menu-my="ဆုလက်ကျန်နှင့် TrueMoney ငွေထုတ်တောင်းဆိုမှုမှတ်တမ်းကို ကြည့်ပါ။" data-menu-en="Review your points and TrueMoney withdrawal requests.">ဆုလက်ကျန်နှင့် TrueMoney ငွေထုတ်တောင်းဆိုမှုမှတ်တမ်းကို ကြည့်ပါ။</span></div>
+        </section>
+
+        <section class="quick-menu-section" aria-labelledby="quickMenuLanguageHeading">
+          <div class="quick-menu-language">
+            <label id="quickMenuLanguageHeading" for="quickMenuLanguage" data-menu-my="ဘာသာစကား" data-menu-en="Language">ဘာသာစကား</label>
+            <select id="quickMenuLanguage" aria-describedby="quickMenuLanguageNote">
+              <option value="my">မြန်မာ</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <p class="quick-menu-language-note" id="quickMenuLanguageNote" data-menu-my="ဘာသာစကားရွေးချယ်မှုကို ဤ browser တွင် သိမ်းထားပါမည်။ English ရွေးပါက ဤအမြန်မီနူးနှင့် အောက်ခြေသွားလာမှုစာသားများကို ပြောင်းပေးပါမည်။" data-menu-en="Your language choice is saved in this browser. English translates this quick menu and bottom navigation; the main page remains in Burmese.">ဘာသာစကားရွေးချယ်မှုကို ဤ browser တွင် သိမ်းထားပါမည်။ English ရွေးပါက ဤအမြန်မီနူးနှင့် အောက်ခြေသွားလာမှုစာသားများကို ပြောင်းပေးပါမည်။</p>
+        </section>
+      </aside>
     </div>
 
     <!-- User Card -->
@@ -946,7 +1083,7 @@
         <a class="view-all" href="#details">အသေးစိတ် &gt;</a>
       </div>
 
-      <div class="usage-card">
+      <div class="usage-card" id="details">
         <div class="usage-header">
           <span class="usage-title">ယနေ့ရရှိနိုင်သော အလုပ်များ</span>
         </div>
@@ -973,7 +1110,7 @@
       </div>
 
       <!-- Daily check-in rewards and TrueMoney withdrawal -->
-      <section class="reward-card" aria-labelledby="rewardHeading">
+      <section class="reward-card" id="rewards" aria-labelledby="rewardHeading">
         <div class="reward-top">
           <div>
             <div class="reward-kicker">Daily Wage ဆုကြေး</div>
@@ -1051,7 +1188,7 @@
         <a class="view-all" href="#all-jobs">အားလုံးကြည့်ရန် &gt;</a>
       </div>
 
-      <div class="offers-scroll">
+      <div class="offers-scroll" id="all-jobs">
         <div class="offer-card">
           <div class="offer-image">ဆောက်လုပ်ရေး</div>
           <div class="offer-content">
@@ -1084,25 +1221,25 @@
 
   <!-- Bottom Navigation -->
   <div class="bottom-nav">
-    <a class="nav-item active" href="#home">
+    <a class="nav-item active" href="#home" data-menu-my-label="ပင်မ" data-menu-en-label="Home">
       <span>🏠</span>
-      <span class="nav-label">ပင်မ</span>
+      <span class="nav-label" data-menu-my="ပင်မ" data-menu-en="Home">ပင်မ</span>
     </a>
-    <a class="nav-item" href="#jobs">
+    <a class="nav-item" href="#all-jobs" data-menu-my-label="အလုပ်များ" data-menu-en-label="Jobs">
       <span>📦</span>
-      <span class="nav-label">အလုပ်များ</span>
+      <span class="nav-label" data-menu-my="အလုပ်များ" data-menu-en="Jobs">အလုပ်များ</span>
     </a>
-    <a class="nav-item" href="#withdrawalHistorySection">
+    <a class="nav-item" href="#withdrawalHistorySection" data-menu-my-label="မှတ်တမ်း" data-menu-en-label="History">
       <span>🏆</span>
-      <span class="nav-label">မှတ်တမ်း</span>
+      <span class="nav-label" data-menu-my="မှတ်တမ်း" data-menu-en="History">မှတ်တမ်း</span>
     </a>
-    <a class="nav-item" href="#earnings">
+    <a class="nav-item" href="#earnings" data-menu-my-label="ဝင်ငွေ" data-menu-en-label="Income">
       <span>📈</span>
-      <span class="nav-label">ဝင်ငွေ</span>
+      <span class="nav-label" data-menu-my="ဝင်ငွေ" data-menu-en="Income">ဝင်ငွေ</span>
     </a>
-    <a class="nav-item" href="#more">
+    <a class="nav-item" href="#more" id="bottomMoreButton" data-menu-my-label="အခြား" data-menu-en-label="More" aria-controls="quickMenu" aria-expanded="false">
       <span>⋮</span>
-      <span class="nav-label">အခြား</span>
+      <span class="nav-label" data-menu-my="အခြား" data-menu-en="More">အခြား</span>
     </a>
   </div>
 
@@ -1113,12 +1250,88 @@
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', function(e) {
         e.preventDefault();
+        const targetId = this.getAttribute('href')?.slice(1);
+        if (targetId === 'more') {
+          toggleQuickMenu();
+          return;
+        }
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         this.classList.add('active');
-        const targetId = this.getAttribute('href')?.slice(1);
         document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
+
+    const quickMenu = document.getElementById('quickMenu');
+    const quickMenuTriggers = [
+      document.getElementById('featuresMenuButton'),
+      document.getElementById('moreMenuButton'),
+      document.getElementById('bottomMoreButton')
+    ];
+    const quickMenuLanguage = document.getElementById('quickMenuLanguage');
+    const QUICK_MENU_LANGUAGE_KEY = 'dailyWageMenuLanguage';
+
+    function setQuickMenuOpen(open, restoreFocus = false) {
+      quickMenu.hidden = !open;
+      quickMenuTriggers.forEach(button => button.setAttribute('aria-expanded', String(open)));
+      if (open) {
+        window.requestAnimationFrame(() => quickMenuLanguage.focus());
+      } else if (restoreFocus) {
+        document.getElementById('moreMenuButton').focus();
+      }
+    }
+
+    function toggleQuickMenu() {
+      setQuickMenuOpen(quickMenu.hidden);
+    }
+
+    function applyMenuLanguage(language) {
+      const selectedLanguage = language === 'en' ? 'en' : 'my';
+      document.documentElement.lang = selectedLanguage;
+      document.querySelectorAll('[data-menu-my][data-menu-en]').forEach(element => {
+        element.textContent = selectedLanguage === 'en' ? element.dataset.menuEn : element.dataset.menuMy;
+      });
+      document.querySelectorAll('[data-menu-my-label][data-menu-en-label]').forEach(element => {
+        const label = selectedLanguage === 'en' ? element.dataset.menuEnLabel : element.dataset.menuMyLabel;
+        element.setAttribute('aria-label', label);
+      });
+      const closeButton = document.getElementById('closeQuickMenuButton');
+      closeButton.setAttribute('aria-label', selectedLanguage === 'en' ? 'Close menu' : 'ပိတ်ရန်');
+      document.getElementById('featuresMenuButton').setAttribute('aria-label', selectedLanguage === 'en' ? 'Open Daily Wage features' : 'နေ့စား app လုပ်ဆောင်ချက်များ ဖွင့်ရန်');
+      document.getElementById('moreMenuButton').setAttribute('aria-label', selectedLanguage === 'en' ? 'Open more options' : 'အခြားရွေးချယ်စရာများ ဖွင့်ရန်');
+      quickMenuLanguage.value = selectedLanguage;
+      try { localStorage.setItem(QUICK_MENU_LANGUAGE_KEY, selectedLanguage); } catch (error) { /* Keep the current selection for this page view. */ }
+    }
+
+    quickMenuTriggers.slice(0, 2).forEach(button => button.addEventListener('click', toggleQuickMenu));
+    document.getElementById('closeQuickMenuButton').addEventListener('click', () => setQuickMenuOpen(false, true));
+    quickMenuLanguage.addEventListener('change', () => applyMenuLanguage(quickMenuLanguage.value));
+    document.getElementById('quickMenuProfileButton').addEventListener('click', () => {
+      setQuickMenuOpen(false);
+      document.getElementById('editProfileButton').click();
+    });
+    quickMenu.addEventListener('click', event => {
+      const link = event.target.closest('a[href^="#"]');
+      if (!link) return;
+      setQuickMenuOpen(false);
+      const targetId = link.getAttribute('href').slice(1);
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.getAttribute('href') === `#${targetId}`);
+      });
+      if (targetId === 'all-jobs') {
+        document.getElementById('all-jobs')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+    document.addEventListener('click', event => {
+      if (!quickMenu.hidden && !quickMenu.contains(event.target) && !quickMenuTriggers.some(button => button.contains(event.target))) {
+        setQuickMenuOpen(false);
+      }
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !quickMenu.hidden) setQuickMenuOpen(false, true);
+    });
+    let savedMenuLanguage = 'my';
+    try { savedMenuLanguage = localStorage.getItem(QUICK_MENU_LANGUAGE_KEY) || 'my'; } catch (error) { /* Use Burmese by default. */ }
+    applyMenuLanguage(savedMenuLanguage);
 
     // First-entry profile setup
     const PROFILE_STORAGE_KEY = 'dailyWageUserProfile';
