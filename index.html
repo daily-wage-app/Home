@@ -868,9 +868,156 @@
       .smart-wage-fields, .smart-wage-results { grid-template-columns: 1fr; }
       .withdrawal-dialog { border-radius: 16px; padding: 18px; }
     }
+
+    /* Daily Wage mobile-first vertical feed shell. */
+    :root { --dw-blue: #1689ff; --dw-ink: #14283c; --dw-bg: #f4f7fb; }
+    html { scroll-behavior: smooth; scroll-padding-top: 100px; scroll-snap-type:y proximity; }
+    body { min-height: 100vh; background: #e9eef5; color: var(--dw-ink); }
+    .content-wrapper { width: min(100%, 560px); min-height: 100vh; margin: 0 auto; padding-bottom: calc(84px + env(safe-area-inset-bottom)); background: var(--dw-bg); box-shadow: 0 0 48px rgba(16,35,56,.12); }
+    .header { position: sticky; top: 0; z-index: 30; padding: calc(12px + env(safe-area-inset-top)) 16px 15px; border-radius: 0 0 24px 24px; background: linear-gradient(145deg,#071c32 0%,#0a3155 58%,#126bb3 100%); box-shadow: 0 9px 26px rgba(5,25,45,.2); }
+    .brand-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .brand-lockup { display:flex; align-items:center; gap:10px; color:white; }
+    .brand-mark { display:grid; width:38px; height:38px; place-items:center; border-radius:13px; background:linear-gradient(145deg,#58c9ff,#1485ff); box-shadow:0 6px 16px rgba(0,141,255,.28); font-size:12px; font-weight:950; letter-spacing:-.04em; }
+    .brand-name { font-size:18px; font-weight:900; letter-spacing:-.035em; }
+    .brand-tagline { margin-top:1px; color:rgba(255,255,255,.68); font-size:10px; }
+    .brand-profile-button { display:grid; width:40px; height:40px; place-items:center; border:1px solid rgba(255,255,255,.24); border-radius:50%; background:rgba(255,255,255,.12); color:#fff; font-size:19px; cursor:pointer; }
+    .search-bar { min-height:44px; margin-bottom:0; border:1px solid rgba(255,255,255,.28); border-radius:14px; background:rgba(255,255,255,.13); box-shadow:none; }
+    .search-bar input { background:transparent; color:#fff; }
+    .search-bar input::placeholder { color:rgba(255,255,255,.7); }
+    .search-bar svg,.search-icon-button { color:#fff; }
+    .search-icon-button:hover,.search-icon-button[aria-expanded="true"] { background:rgba(255,255,255,.16); }
+    .quick-menu { top: calc(100% + 8px); }
+    .user-card { margin:12px 14px 4px; border:1px solid #e5edf5; border-radius:18px; box-shadow:0 8px 24px rgba(20,54,84,.07); }
+    .user-logo { background:linear-gradient(140deg,#1c9eff,#0758a8); }
+    .container { padding:10px 14px 18px; }
+    .user-card,.container > .section-title,.container > .usage-card,.container > .reward-card,.container > .reward-history,.container > .smart-wage-card { scroll-snap-align:start; }
+    .section-title { margin-top:16px; }
+    .usage-card,.reward-card,.reward-history,.smart-wage-card { border:1px solid rgba(29,73,111,.08); box-shadow:0 8px 24px rgba(20,54,84,.07); scroll-margin-top:116px; }
+    .reward-card { background:linear-gradient(145deg,#0c2845 0%,#10528a 66%,#1382d0 100%); }
+    .reward-card h2,.reward-card .reward-streak-line,.reward-card .reward-note,.reward-card .reward-message { color:#fff; }
+    .reward-card .reward-balance { color:#fff; }
+    .reward-card .reward-progress { background:rgba(255,255,255,.2); }
+    .bottom-nav { z-index:80; left:50%; width:min(100%,560px); transform:translateX(-50%); justify-content:space-around; padding:9px 5px calc(10px + env(safe-area-inset-bottom)); border:1px solid rgba(218,229,240,.9); border-bottom:0; border-radius:20px 20px 0 0; background:rgba(255,255,255,.94); box-shadow:0 -8px 28px rgba(18,45,70,.1); backdrop-filter:blur(16px); }
+    .nav-item { gap:3px; font-size:20px; transition:transform .18s ease,color .18s ease; }
+    .nav-item.active { color:#087ce0; transform:translateY(-2px); }
+    .nav-item.active > span:first-child { filter:drop-shadow(0 3px 5px rgba(14,127,226,.18)); }
+    .nav-label { font-size:10px; font-weight:700; }
+    .app-splash { position:fixed; inset:0; z-index:2200; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; background:radial-gradient(ellipse at 50% 36%,#174f7f 0%,#0b2744 47%,#061321 100%); color:#fff; opacity:1; transition:opacity .36s ease,visibility .36s ease; }
+    .app-splash.is-hidden { visibility:hidden; opacity:0; pointer-events:none; }
+    .splash-mark { position:relative; display:grid; width:76px; height:76px; place-items:center; border:1px solid rgba(255,255,255,.38); border-radius:26px; background:linear-gradient(145deg,#52ceff,#0879ed); box-shadow:0 14px 44px rgba(0,144,255,.3); font-size:23px; font-weight:950; letter-spacing:-.06em; animation:splashFloat 1s ease-in-out infinite alternate; }
+    .splash-mark i { position:absolute; right:-4px; bottom:7px; width:15px; height:15px; border:3px solid #0a2440; border-radius:50%; background:#9de8ff; }
+    .app-splash > strong { margin-top:5px; font-size:25px; letter-spacing:-.04em; }
+    .splash-caption { color:rgba(255,255,255,.7); font-size:12px; }
+    .splash-progress { width:92px; height:3px; margin-top:11px; overflow:hidden; border-radius:5px; background:rgba(255,255,255,.18); }
+    .splash-progress span { display:block; width:42%; height:100%; border-radius:inherit; background:#7be0ff; animation:splashLoad .9s ease-in-out infinite; }
+    @keyframes splashFloat { to { transform:translateY(-5px); } }
+    @keyframes splashLoad { from { transform:translateX(-110%); } to { transform:translateX(250%); } }
+    body.profile-drawer-open { overflow:hidden; }
+    .profile-drawer-backdrop[hidden] { display:none !important; }
+    .profile-drawer-backdrop { position:fixed; inset:0; z-index:1300; display:flex; justify-content:flex-end; background:rgba(4,16,29,.52); backdrop-filter:blur(3px); opacity:0; transition:opacity .24s ease; }
+    .profile-drawer-backdrop.is-open { opacity:1; }
+    .profile-drawer { width:min(430px,92vw); height:100%; padding:calc(12px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom)); overflow-y:auto; background:#f7f9fc; color:#183049; box-shadow:-18px 0 50px rgba(0,0,0,.2); transform:translateX(102%); transition:transform .28s cubic-bezier(.2,.75,.2,1); }
+    .profile-drawer-backdrop.is-open .profile-drawer { transform:translateX(0); }
+    .drawer-handle { display:none; }
+    .drawer-header { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin:7px 0 18px; }
+    .drawer-eyebrow { color:#1684d5; font-size:10px; font-weight:900; letter-spacing:.12em; }
+    .drawer-header h2 { margin-top:3px; font-size:22px; letter-spacing:-.04em; }
+    .drawer-close { width:38px; height:38px; border:0; border-radius:50%; background:#e8eef5; color:#425a70; font-size:22px; cursor:pointer; }
+    .drawer-profile-card { display:flex; align-items:center; gap:11px; padding:15px 13px; border:1px solid #dfebf4; border-radius:18px; background:linear-gradient(130deg,#eaf6ff,#fff); }
+    .drawer-avatar { display:grid; width:50px; height:50px; flex:0 0 50px; place-items:center; border-radius:17px; background:linear-gradient(145deg,#2ab6ff,#1265ba); color:#fff; font-size:15px; font-weight:900; }
+    .drawer-profile-copy { flex:1; min-width:0; }
+    .drawer-profile-copy strong,.drawer-profile-copy span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .drawer-profile-copy strong { font-size:14px; }
+    .drawer-profile-copy span { margin-top:4px; color:#718396; font-size:11px; }
+    .drawer-edit { border:1px solid #cae2f5; border-radius:10px; padding:8px 10px; background:#fff; color:#0879ca; font:inherit; font-size:11px; font-weight:800; cursor:pointer; }
+    .drawer-profile-details { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0 22px; }
+    .drawer-profile-details div { min-width:0; padding:10px 11px; border-radius:12px; background:#fff; }
+    .drawer-profile-details span,.drawer-profile-details strong { display:block; overflow-wrap:anywhere; }
+    .drawer-profile-details span { color:#7a8a99; font-size:10px; }
+    .drawer-profile-details strong { margin-top:4px; color:#243d54; font-size:12px; }
+    .drawer-settings h3 { margin-bottom:8px; font-size:15px; }
+    .drawer-setting-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 12px; border-bottom:1px solid #edf1f5; background:#fff; }
+    .drawer-setting-row:first-of-type { border-radius:13px 13px 0 0; }
+    .drawer-setting-row:last-of-type { border-radius:0 0 13px 13px; border-bottom:0; }
+    .drawer-setting-row b,.drawer-setting-row small { display:block; }
+    .drawer-setting-row b { font-size:12px; }
+    .drawer-setting-row small { margin-top:3px; color:#8391a0; font-size:10px; }
+    .drawer-setting-row select { width:116px; min-height:38px; border:1px solid #dbe5ed; border-radius:9px; padding:7px 8px; background:#fff; color:#233e55; font:inherit; font-size:12px; }
+    .drawer-rewards-link { display:flex; align-items:center; gap:10px; margin-top:17px; padding:14px; border-radius:13px; background:#e9f5ff; color:#126ab1; font-size:13px; font-weight:800; text-decoration:none; }
+    .drawer-rewards-link span:last-child { margin-left:auto; font-size:22px; }
+    .drawer-footer { margin-top:23px; color:#8493a1; text-align:center; font-size:10px; }
+    .drawer-footer span:first-child { padding:0 4px; color:#23a1ec; }
+    html[data-theme="dark"] body { background:#080f18; color:#e4edf6; }
+    html[data-theme="dark"] .content-wrapper { background:#0c1520; box-shadow:0 0 50px rgba(0,0,0,.25); }
+    html[data-theme="dark"] .user-card,html[data-theme="dark"] .usage-card,html[data-theme="dark"] .reward-history,html[data-theme="dark"] .smart-wage-card { border-color:#203549; background:#111f2e; color:#e4edf6; }
+    html[data-theme="dark"] .user-phone,html[data-theme="dark"] .section-title h2,html[data-theme="dark"] .usage-title { color:#edf5fc; }
+    html[data-theme="dark"] .user-status,html[data-theme="dark"] .usage-label,html[data-theme="dark"] .reward-history h3 { color:#a5b5c4; }
+    html[data-theme="dark"] .usage-value { color:#e4edf6; }
+    html[data-theme="dark"] .smart-wage-card h2,html[data-theme="dark"] .smart-wage-field label { color:#dceaf7; }
+    html[data-theme="dark"] .smart-wage-intro,html[data-theme="dark"] .smart-wage-note { color:#a5b5c4; }
+    html[data-theme="dark"] .smart-wage-result { background:#192e41; }
+    html[data-theme="dark"] .smart-wage-result span { color:#a4bacd; }
+    html[data-theme="dark"] .smart-wage-result strong { color:#8fd4ff; }
+    html[data-theme="dark"] .smart-wage-field input,html[data-theme="dark"] .smart-wage-field select,html[data-theme="dark"] .smart-wage-reset { border-color:#344a5f; background:#0e1b29; color:#e4edf6; }
+    html[data-theme="dark"] .bottom-nav { border-color:#1e3142; background:rgba(12,21,32,.94); }
+    html[data-theme="dark"] .nav-item { color:#91a3b5; }
+    html[data-theme="dark"] .nav-item.active { color:#4bb7ff; }
+    html[data-theme="dark"] .quick-menu { border-color:#203549; background:#111f2e; color:#e4edf6; }
+    html[data-theme="dark"] .quick-menu-links a,html[data-theme="dark"] .quick-menu-links button,html[data-theme="dark"] .quick-menu-feature { border-color:#263b4f; background:#162737; color:#dceaf7; }
+    html[data-theme="dark"] .quick-menu-section h3,html[data-theme="dark"] .quick-menu-subtitle,html[data-theme="dark"] .quick-menu-language-note { color:#a2b2c1; }
+    html[data-theme="dark"] .profile-drawer { background:#0e1a27; color:#e4edf6; }
+    html[data-theme="dark"] .drawer-profile-card,html[data-theme="dark"] .drawer-profile-details div,html[data-theme="dark"] .drawer-setting-row { border-color:#263b4f; background:#142333; }
+    html[data-theme="dark"] .drawer-profile-details strong,html[data-theme="dark"] .drawer-setting-row b { color:#e4edf6; }
+    html[data-theme="dark"] .drawer-setting-row select { border-color:#334a60; background:#0e1a27; color:#e4edf6; }
+    @media (max-width:480px) { .profile-drawer { width:100%; } .drawer-handle { display:block; width:38px; height:4px; margin:0 auto 15px; border-radius:5px; background:#d6e1ea; } .drawer-header { margin-top:0; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
   </style>
 </head>
 <body>
+  <div class="app-splash" id="appSplash" aria-label="Daily Wage စတင်ဖွင့်နေပါသည်" role="status">
+    <div class="splash-mark" aria-hidden="true"><span>DW</span><i></i></div>
+    <strong>Daily Wage</strong>
+    <span class="splash-caption" data-menu-my="နေ့စားအလုပ်နှင့် ဝင်ငွေစီမံမှု" data-menu-en="Daily work and income, made simple">နေ့စားအလုပ်နှင့် ဝင်ငွေစီမံမှု</span>
+    <div class="splash-progress" aria-hidden="true"><span></span></div>
+  </div>
+  <script>
+    window.setTimeout(() => document.getElementById('appSplash')?.classList.add('is-hidden'), 1150);
+    window.setTimeout(() => document.getElementById('appSplash')?.remove(), 1600);
+  </script>
+
+  <div class="profile-drawer-backdrop" id="profileDrawerBackdrop" hidden>
+    <aside class="profile-drawer" id="profileDrawer" role="dialog" aria-modal="true" aria-labelledby="profileDrawerTitle">
+      <div class="drawer-handle" aria-hidden="true"></div>
+      <header class="drawer-header">
+        <div><span class="drawer-eyebrow" data-menu-my="သင့်အကောင့်" data-menu-en="YOUR ACCOUNT">သင့်အကောင့်</span><h2 id="profileDrawerTitle" data-menu-my="ပရိုဖိုင်နှင့် စက်တင်များ" data-menu-en="Profile & settings">ပရိုဖိုင်နှင့် စက်တင်များ</h2></div>
+        <button class="drawer-close" id="closeProfileDrawerButton" type="button" aria-label="ပိတ်ရန်">×</button>
+      </header>
+      <section class="drawer-profile-card" aria-label="User profile">
+        <div class="drawer-avatar" id="drawerAvatar">DW</div>
+        <div class="drawer-profile-copy"><strong id="drawerName">အသုံးပြုသူအသစ်</strong><span id="drawerStatus">ကိုယ်ရေးအချက်အလက် ဖြည့်ပါ</span></div>
+        <button class="drawer-edit" id="drawerEditProfileButton" type="button" data-menu-my="ပြင်ဆင်ရန်" data-menu-en="Edit">ပြင်ဆင်ရန်</button>
+      </section>
+      <div class="drawer-profile-details">
+        <div><span data-menu-my="နိုင်ငံ" data-menu-en="Country">နိုင်ငံ</span><strong id="drawerCountry">—</strong></div>
+        <div><span data-menu-my="မွေးသက္ကရာဇ်" data-menu-en="Date of birth">မွေးသက္ကရာဇ်</span><strong id="drawerDob">—</strong></div>
+        <div><span data-menu-my="ကျား/မ" data-menu-en="Gender">ကျား/မ</span><strong id="drawerGender">—</strong></div>
+        <div><span data-menu-my="ဖုန်းနံပါတ်" data-menu-en="Phone">ဖုန်းနံပါတ်</span><strong id="drawerPhone">—</strong></div>
+        <div><span data-menu-my="အီးမေးလ်" data-menu-en="Email">အီးမေးလ်</span><strong id="drawerEmail">—</strong></div>
+      </div>
+      <section class="drawer-settings" aria-labelledby="drawerSettingsTitle">
+        <h3 id="drawerSettingsTitle" data-menu-my="အက်ပ်စက်တင်များ" data-menu-en="App settings">အက်ပ်စက်တင်များ</h3>
+        <label class="drawer-setting-row" for="drawerLanguageSelect"><span><b data-menu-my="ဘာသာစကား" data-menu-en="Language">ဘာသာစကား</b><small data-menu-my="အက်ပ်တစ်ခုလုံး၏ ဘာသာစကား" data-menu-en="App display language">အက်ပ်တစ်ခုလုံး၏ ဘာသာစကား</small></span>
+          <select id="drawerLanguageSelect"><option value="my">မြန်မာ</option><option value="en">English</option></select>
+        </label>
+        <label class="drawer-setting-row" for="drawerThemeSelect"><span><b data-menu-my="အသွင်အပြင်" data-menu-en="Appearance">အသွင်အပြင်</b><small data-menu-my="မျက်နှာပြင်အရောင်ကို ရွေးပါ" data-menu-en="Choose your app colors">မျက်နှာပြင်အရောင်ကို ရွေးပါ</small></span>
+          <select id="drawerThemeSelect"><option value="system" data-menu-my="စက်အတိုင်း" data-menu-en="System">စက်အတိုင်း</option><option value="light" data-menu-my="အလင်း" data-menu-en="Light">အလင်း</option><option value="dark" data-menu-my="အမှောင်" data-menu-en="Dark">အမှောင်</option></select>
+        </label>
+      </section>
+      <a class="drawer-rewards-link" href="#rewards" id="drawerRewardsLink"><span aria-hidden="true">✦</span><span data-menu-my="ဆုကြေးနှင့် အမှတ်များ" data-menu-en="Rewards & points">ဆုကြေးနှင့် အမှတ်များ</span><span aria-hidden="true">›</span></a>
+      <p class="drawer-footer">Daily Wage <span>•</span> <span data-menu-my="နေ့စဉ်အလုပ်၊ တည်ငြိမ်သောဝင်ငွေ" data-menu-en="Daily work, steadier income">နေ့စဉ်အလုပ်၊ တည်ငြိမ်သောဝင်ငွေ</span></p>
+    </aside>
+  </div>
+
   <!-- First-entry profile collection. The form writes to Firebase only after explicit consent. -->
   <div class="profile-backdrop" id="profileBackdrop">
     <section class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" aria-describedby="profileModalIntro">
@@ -985,6 +1132,10 @@
   <div class="content-wrapper" id="home">
     <!-- Header -->
     <div class="header">
+      <div class="brand-row">
+        <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">DW</span><div><div class="brand-name">Daily Wage</div><div class="brand-tagline" data-menu-my="အလုပ်၊ ဆုကြေး၊ ဝင်ငွေ" data-menu-en="Work · rewards · income">အလုပ်၊ ဆုကြေး၊ ဝင်ငွေ</div></div></div>
+        <button class="brand-profile-button" id="headerProfileButton" type="button" aria-label="ပရိုဖိုင်ဖွင့်ရန်" title="ပရိုဖိုင်" aria-controls="profileDrawerBackdrop" aria-expanded="false">♙</button>
+      </div>
       <!-- Search Bar -->
       <div class="search-bar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1237,9 +1388,9 @@
       <span>📈</span>
       <span class="nav-label" data-menu-my="ဝင်ငွေ" data-menu-en="Income">ဝင်ငွေ</span>
     </a>
-    <a class="nav-item" href="#more" id="bottomMoreButton" data-menu-my-label="အခြား" data-menu-en-label="More" aria-controls="quickMenu" aria-expanded="false">
-      <span>⋮</span>
-      <span class="nav-label" data-menu-my="အခြား" data-menu-en="More">အခြား</span>
+    <a class="nav-item" href="#profile" id="bottomProfileButton" data-menu-my-label="ပရိုဖိုင်" data-menu-en-label="Profile" aria-controls="profileDrawerBackdrop" aria-expanded="false">
+      <span>♙</span>
+      <span class="nav-label" data-menu-my="ပရိုဖိုင်" data-menu-en="Profile">ပရိုဖိုင်</span>
     </a>
   </div>
 
@@ -1252,8 +1403,10 @@
       item.addEventListener('click', function(e) {
         e.preventDefault();
         const targetId = this.getAttribute('href')?.slice(1);
-        if (targetId === 'more') {
-          toggleQuickMenu();
+        if (targetId === 'profile') {
+          document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+          this.classList.add('active');
+          openProfileDrawer();
           return;
         }
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -1265,8 +1418,7 @@
     const quickMenu = document.getElementById('quickMenu');
     const quickMenuTriggers = [
       document.getElementById('featuresMenuButton'),
-      document.getElementById('moreMenuButton'),
-      document.getElementById('bottomMoreButton')
+      document.getElementById('moreMenuButton')
     ];
     const quickMenuLanguage = document.getElementById('quickMenuLanguage');
 
@@ -1293,7 +1445,7 @@
     quickMenuLanguage.addEventListener('change', () => applyMenuLanguage(quickMenuLanguage.value));
     document.getElementById('quickMenuProfileButton').addEventListener('click', () => {
       setQuickMenuOpen(false);
-      document.getElementById('editProfileButton').click();
+      openProfileDrawer();
     });
     quickMenu.addEventListener('click', event => {
       const link = event.target.closest('a[href^="#"]');
@@ -1420,7 +1572,94 @@
       document.getElementById('userDisplayCountry').textContent = profile?.country
         ? `🌍 ${t(profile.country)}`
         : t('🌍 နိုင်ငံ မရွေးရသေးပါ');
+      document.getElementById('drawerAvatar').textContent = initials;
+      document.getElementById('drawerName').textContent = name;
+      document.getElementById('drawerStatus').textContent = profile?.syncStatus === 'synced'
+        ? t('အချက်အလက် သိမ်းဆည်းပြီး')
+        : profile?.syncStatus === 'sync-failed'
+          ? t('အချက်အလက် ပေးပို့ရန်လိုသည်')
+          : t('ကိုယ်ရေးအချက်အလက် ဖြည့်ပါ');
+      document.getElementById('drawerCountry').textContent = profile?.country ? t(profile.country) : '—';
+      document.getElementById('drawerDob').textContent = profile?.dateOfBirth || '—';
+      const genderLabels = { female: 'အမျိုးသမီး', male: 'အမျိုးသား', non_binary: 'အခြားအမျိုးအစား', prefer_not_to_say: 'မဖြေလိုပါ' };
+      document.getElementById('drawerGender').textContent = profile?.gender ? t(genderLabels[profile.gender] || 'မဖြေလိုပါ') : '—';
+      document.getElementById('drawerPhone').textContent = profile?.phone || '—';
+      document.getElementById('drawerEmail').textContent = profile?.email || '—';
     }
+
+    const profileDrawerBackdrop = document.getElementById('profileDrawerBackdrop');
+    const profileDrawer = document.getElementById('profileDrawer');
+    const drawerLanguageSelect = document.getElementById('drawerLanguageSelect');
+    const drawerThemeSelect = document.getElementById('drawerThemeSelect');
+    let drawerReturnFocus = null;
+    const THEME_STORAGE_KEY = 'dailyWageAppearance';
+    let drawerCloseTimer;
+
+    function applyTheme(preference) {
+      const selected = ['system', 'light', 'dark'].includes(preference) ? preference : 'system';
+      const systemDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = selected === 'dark' || (selected === 'system' && systemDark) ? 'dark' : 'light';
+      drawerThemeSelect.value = selected;
+      try { localStorage.setItem(THEME_STORAGE_KEY, selected); } catch (error) { /* Keep this page view setting. */ }
+    }
+
+    let initialTheme = 'system';
+    try { initialTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'system'; } catch (error) { /* Use system preference. */ }
+    applyTheme(initialTheme);
+
+    function openProfileDrawer() {
+      window.clearTimeout(drawerCloseTimer);
+      drawerReturnFocus = document.activeElement;
+      updateUserCard(readStoredProfile());
+      drawerLanguageSelect.value = getLanguage();
+      let savedTheme = 'system';
+      try { savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'system'; } catch (error) { /* Use system preference. */ }
+      applyTheme(savedTheme);
+      profileDrawerBackdrop.hidden = false;
+      document.body.classList.add('profile-drawer-open');
+      document.getElementById('bottomProfileButton').setAttribute('aria-expanded', 'true');
+      document.getElementById('headerProfileButton').setAttribute('aria-expanded', 'true');
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.id === 'bottomProfileButton'));
+      profileDrawerBackdrop.classList.add('is-open');
+      window.requestAnimationFrame(() => {
+        if (!profileDrawerBackdrop.hidden) document.getElementById('closeProfileDrawerButton').focus();
+      });
+    }
+
+    function closeProfileDrawer(restoreFocus = true) {
+      profileDrawerBackdrop.classList.remove('is-open');
+      document.body.classList.remove('profile-drawer-open');
+      document.getElementById('bottomProfileButton').setAttribute('aria-expanded', 'false');
+      document.getElementById('headerProfileButton').setAttribute('aria-expanded', 'false');
+      drawerCloseTimer = window.setTimeout(() => {
+        if (!profileDrawerBackdrop.classList.contains('is-open')) profileDrawerBackdrop.hidden = true;
+      }, 280);
+      if (restoreFocus && drawerReturnFocus?.isConnected) drawerReturnFocus.focus();
+    }
+
+    document.getElementById('headerProfileButton').addEventListener('click', openProfileDrawer);
+    document.getElementById('bottomProfileButton').addEventListener('click', event => {
+      event.currentTarget.setAttribute('aria-expanded', 'true');
+    });
+    document.getElementById('closeProfileDrawerButton').addEventListener('click', () => closeProfileDrawer());
+    profileDrawerBackdrop.addEventListener('click', event => {
+      if (event.target === profileDrawerBackdrop) closeProfileDrawer();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !profileDrawerBackdrop.hidden) closeProfileDrawer();
+    });
+    document.getElementById('drawerEditProfileButton').addEventListener('click', () => {
+      closeProfileDrawer(false);
+      window.setTimeout(() => openProfileEditor(false), 300);
+    });
+    drawerLanguageSelect.addEventListener('change', () => setLanguage(drawerLanguageSelect.value));
+    drawerThemeSelect.addEventListener('change', () => applyTheme(drawerThemeSelect.value));
+    window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
+      let preference = 'system';
+      try { preference = localStorage.getItem(THEME_STORAGE_KEY) || 'system'; } catch (error) { /* Use system preference. */ }
+      if (preference === 'system') applyTheme(preference);
+    });
+    document.getElementById('drawerRewardsLink').addEventListener('click', () => closeProfileDrawer(false));
 
     function collectProfile() {
       const formData = new FormData(profileForm);

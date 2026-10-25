@@ -118,7 +118,25 @@ const translations = {
   'အလုပ်များ': 'Jobs',
   'မှတ်တမ်း': 'History',
   'ဝင်ငွေ': 'Income',
-  'အခြား': 'More',
+  'ပရိုဖိုင်': 'Profile',
+  'ပရိုဖိုင်နှင့် စက်တင်များ': 'Profile & settings',
+  'သင့်အကောင့်': 'YOUR ACCOUNT',
+  'အက်ပ်စက်တင်များ': 'App settings',
+  'အက်ပ်တစ်ခုလုံး၏ ဘာသာစကား': 'App display language',
+  'အသွင်အပြင်': 'Appearance',
+  'မျက်နှာပြင်အရောင်ကို ရွေးပါ': 'Choose your app colors',
+  'စက်အတိုင်း': 'System',
+  'အလင်း': 'Light',
+  'အမှောင်': 'Dark',
+  'ဆုကြေးနှင့် အမှတ်များ': 'Rewards & points',
+  'နေ့စဉ်အလုပ်၊ တည်ငြိမ်သောဝင်ငွေ': 'Daily work, steadier income',
+  'နေ့စားအလုပ်နှင့် ဝင်ငွေစီမံမှု': 'Daily work and income, made simple',
+  'အလုပ်၊ ဆုကြေး၊ ဝင်ငွေ': 'Work · rewards · income',
+  'ပရိုဖိုင်ဖွင့်ရန်': 'Open profile',
+  'ကျား': 'Male',
+  'မ': 'Female',
+  'ကျား/မ': 'Gender',
+  'Daily Wage စတင်ဖွင့်နေပါသည်': 'Daily Wage is starting',
   '🌍 ': '🌍 ',
 
   'ကိုယ်ရေးအချက်အလက်ကို သိမ်းဆည်းပြီးမှ အမှတ်များ ပြသပါမည်': 'Points will appear after you save your profile',
@@ -143,7 +161,6 @@ const translations = {
   'ဒီနေ့ ဤဖုန်း/browser မှ ဝင်ရောက်မှု ပြုလုပ်ပြီးပါပြီ။': 'This device/browser has already been used to check in today.',
   'ဘန်ကောက်စံတော်ချိန်အရ ဒီနေ့ ဝင်ရောက်မှု ပြုလုပ်ပြီးပါပြီ။': 'You have already checked in today, Bangkok time.',
   'ဒီနေ့ ဝင်ရောက်မှုကို သိမ်းမရပါ။ ယနေ့အတွက် မှတ်တမ်းတင်ပြီးသားဖြစ်ခြင်း သို့မဟုတ် အင်တာနက်ပြတ်တောက်ခြင်း ဖြစ်နိုင်ပါသည်။': 'Could not save today’s check-in. It may already be recorded, or your internet connection may be interrupted.',
-  '{points} မှတ်': '{points} points',
   'ကိုယ်ရေးအချက်အလက်နှင့် အမှတ်လက်ကျန်ကို ဖတ်ပြီးနောက် ထပ်ကြိုးစားပါ။': 'Load your profile and point balance, then try again.',
   'အနည်းဆုံး ၁၀ ဘတ် ထုတ်ယူနိုင်ပါသည်။': 'The minimum withdrawal is 10 baht.',
   'အမှတ်လက်ကျန် မလုံလောက်ပါ။': 'You do not have enough points.',
@@ -156,7 +173,6 @@ const translations = {
   'တောင်းဆိုမှု မပို့နိုင်ပါ။ ထပ်ကြိုးစားပါ။': 'Could not submit the request. Please try again.',
   'အချက်အလက် သိမ်းဆည်းပြီး': 'Information saved',
   'အချက်အလက် ပေးပို့ရန်လိုသည်': 'Information needs to be synced',
-  '🌍 နိုင်ငံ မရွေးရသေးပါ': '🌍 No country selected',
   'မဖြစ်မနေ ဖြည့်ရမည့်အချက်အလက်များကို ဖြည့်ပြီး ဒေတာအသုံးပြုမှု သဘောတူညီချက်ကို အမှန်ခြစ်ပါ။': 'Complete all required fields and accept the data-use consent.',
   'သိမ်းဆည်းနေပါသည်…': 'Saving…',
   'ကိုယ်ရေးအချက်အလက်ကို Daily Wage အကောင့်တွင် လုံခြုံစွာ သိမ်းဆည်းပြီးပါပြီ။': 'Your profile was securely saved to your Daily Wage account.',
@@ -241,12 +257,11 @@ function translateDocument(language) {
 
   document.documentElement.lang = language === 'en' ? 'en' : 'my';
   document.title = language === 'en' ? 'Daily Wage App - Home' : 'နေ့စား App - ပင်မစာမျက်နှာ';
-  const picker = document.getElementById('quickMenuLanguage');
-  if (picker) {
+  document.querySelectorAll('#quickMenuLanguage, #drawerLanguageSelect').forEach(picker => {
     picker.value = language;
     const burmeseOption = picker.querySelector('option[value="my"]');
     if (burmeseOption) burmeseOption.textContent = language === 'en' ? 'Burmese' : 'မြန်မာ';
-  }
+  });
 }
 
 export function setLanguage(language, { persist = true, announce = true } = {}) {
