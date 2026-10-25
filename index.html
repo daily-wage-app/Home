@@ -1059,7 +1059,7 @@
               <option value="en">English</option>
             </select>
           </div>
-          <p class="quick-menu-language-note" id="quickMenuLanguageNote" data-menu-my="ဘာသာစကားရွေးချယ်မှုကို ဤ browser တွင် သိမ်းထားပါမည်။ English ရွေးပါက ဤအမြန်မီနူးနှင့် အောက်ခြေသွားလာမှုစာသားများကို ပြောင်းပေးပါမည်။" data-menu-en="Your language choice is saved in this browser. English translates this quick menu and bottom navigation; the main page remains in Burmese.">ဘာသာစကားရွေးချယ်မှုကို ဤ browser တွင် သိမ်းထားပါမည်။ English ရွေးပါက ဤအမြန်မီနူးနှင့် အောက်ခြေသွားလာမှုစာသားများကို ပြောင်းပေးပါမည်။</p>
+          <p class="quick-menu-language-note" id="quickMenuLanguageNote" data-menu-my="ဘာသာစကားရွေးချယ်မှုကို ဤ browser တွင် သိမ်းထားပြီး ပင်မစာမျက်နှာတစ်ခုလုံးကို ပြောင်းပေးပါမည်။" data-menu-en="Your language choice is saved in this browser and changes the entire Home app interface.">ဘာသာစကားရွေးချယ်မှုကို ဤ browser တွင် သိမ်းထားပြီး ပင်မစာမျက်နှာတစ်ခုလုံးကို ပြောင်းပေးပါမည်။</p>
         </section>
       </aside>
     </div>
@@ -1245,6 +1245,7 @@
 
   <script type="module">
     import { auth, db, signInAnonymously, doc, getDoc, setDoc, serverTimestamp } from './firebase.js';
+    import { getLanguage, setLanguage, t } from './i18n.js';
 
     // Bottom navigation
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -1268,7 +1269,6 @@
       document.getElementById('bottomMoreButton')
     ];
     const quickMenuLanguage = document.getElementById('quickMenuLanguage');
-    const QUICK_MENU_LANGUAGE_KEY = 'dailyWageMenuLanguage';
 
     function setQuickMenuOpen(open, restoreFocus = false) {
       quickMenu.hidden = !open;
@@ -1285,21 +1285,7 @@
     }
 
     function applyMenuLanguage(language) {
-      const selectedLanguage = language === 'en' ? 'en' : 'my';
-      document.documentElement.lang = selectedLanguage;
-      document.querySelectorAll('[data-menu-my][data-menu-en]').forEach(element => {
-        element.textContent = selectedLanguage === 'en' ? element.dataset.menuEn : element.dataset.menuMy;
-      });
-      document.querySelectorAll('[data-menu-my-label][data-menu-en-label]').forEach(element => {
-        const label = selectedLanguage === 'en' ? element.dataset.menuEnLabel : element.dataset.menuMyLabel;
-        element.setAttribute('aria-label', label);
-      });
-      const closeButton = document.getElementById('closeQuickMenuButton');
-      closeButton.setAttribute('aria-label', selectedLanguage === 'en' ? 'Close menu' : 'ပိတ်ရန်');
-      document.getElementById('featuresMenuButton').setAttribute('aria-label', selectedLanguage === 'en' ? 'Open Daily Wage features' : 'နေ့စား app လုပ်ဆောင်ချက်များ ဖွင့်ရန်');
-      document.getElementById('moreMenuButton').setAttribute('aria-label', selectedLanguage === 'en' ? 'Open more options' : 'အခြားရွေးချယ်စရာများ ဖွင့်ရန်');
-      quickMenuLanguage.value = selectedLanguage;
-      try { localStorage.setItem(QUICK_MENU_LANGUAGE_KEY, selectedLanguage); } catch (error) { /* Keep the current selection for this page view. */ }
+      setLanguage(language);
     }
 
     quickMenuTriggers.slice(0, 2).forEach(button => button.addEventListener('click', toggleQuickMenu));
@@ -1329,9 +1315,7 @@
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && !quickMenu.hidden) setQuickMenuOpen(false, true);
     });
-    let savedMenuLanguage = 'my';
-    try { savedMenuLanguage = localStorage.getItem(QUICK_MENU_LANGUAGE_KEY) || 'my'; } catch (error) { /* Use Burmese by default. */ }
-    applyMenuLanguage(savedMenuLanguage);
+    applyMenuLanguage(getLanguage());
 
     // First-entry profile setup
     const PROFILE_STORAGE_KEY = 'dailyWageUserProfile';
@@ -1387,8 +1371,8 @@
       lastFocusedElement = document.activeElement;
       fillProfileForm(existingProfile || {});
       profileIntro.textContent = required
-        ? 'အက်ပ်ကို အသုံးပြုရန် ကိုယ်ရေးအချက်အလက်ကို အရင်ဖြည့်ပါ။ * ပါသောအကွက်များကို မဖြစ်မနေ ဖြည့်ရပါမည်။'
-        : 'ကိုယ်ရေးအချက်အလက်ကို ပြင်ဆင်ပါ။ ပြောင်းလဲမှုများကို Daily Wage အကောင့်တွင် လုံခြုံစွာ သိမ်းဆည်းပါမည်။';
+        ? t('အက်ပ်ကို အသုံးပြုရန် ကိုယ်ရေးအချက်အလက်ကို အရင်ဖြည့်ပါ။ * ပါသောအကွက်များကို မဖြစ်မနေ ဖြည့်ရပါမည်။')
+        : t('ကိုယ်ရေးအချက်အလက်ကို ပြင်ဆင်ပါ။ ပြောင်းလဲမှုများကို Daily Wage အကောင့်တွင် လုံခြုံစွာ သိမ်းဆည်းပါမည်။');
       profileCancelButton.hidden = required;
       profileBackdrop.classList.add('is-open');
       document.body.classList.add('profile-modal-open');
@@ -1405,13 +1389,15 @@
     }
 
     function showProfileError(message) {
-      profileFormError.textContent = message;
+      profileFormError.dataset.sourceMessage = message;
+      profileFormError.textContent = t(message);
       profileFormError.hidden = !message;
     }
 
     function showProfileToast(message) {
       window.clearTimeout(toastTimer);
-      profileToast.textContent = message;
+      profileToast.dataset.sourceMessage = message;
+      profileToast.textContent = t(message);
       profileToast.classList.add('is-visible');
       toastTimer = window.setTimeout(() => profileToast.classList.remove('is-visible'), 4500);
     }
@@ -1427,13 +1413,13 @@
       document.getElementById('userAvatar').textContent = initials;
       document.getElementById('userDisplayName').textContent = name;
       document.getElementById('userDisplayStatus').textContent = profile?.syncStatus === 'synced'
-        ? 'အချက်အလက် သိမ်းဆည်းပြီး'
+        ? t('အချက်အလက် သိမ်းဆည်းပြီး')
         : profile?.syncStatus === 'sync-failed'
-          ? 'အချက်အလက် ပေးပို့ရန်လိုသည်'
-          : 'ကိုယ်ရေးအချက်အလက် ဖြည့်ပါ';
+          ? t('အချက်အလက် ပေးပို့ရန်လိုသည်')
+          : t('ကိုယ်ရေးအချက်အလက် ဖြည့်ပါ');
       document.getElementById('userDisplayCountry').textContent = profile?.country
-        ? `🌍 ${profile.country}`
-        : '🌍 နိုင်ငံ မရွေးရသေးပါ';
+        ? `🌍 ${t(profile.country)}`
+        : t('🌍 နိုင်ငံ မရွေးရသေးပါ');
     }
 
     function collectProfile() {
@@ -1483,7 +1469,7 @@
 
       if (!profileForm.checkValidity()) {
         profileForm.reportValidity();
-        showProfileError('မဖြစ်မနေ ဖြည့်ရမည့်အချက်အလက်များကို ဖြည့်ပြီး ဒေတာအသုံးပြုမှု သဘောတူညီချက်ကို အမှန်ခြစ်ပါ။');
+        showProfileError(t('မဖြစ်မနေ ဖြည့်ရမည့်အချက်အလက်များကို ဖြည့်ပြီး ဒေတာအသုံးပြုမှု သဘောတူညီချက်ကို အမှန်ခြစ်ပါ။'));
         return;
       }
 
@@ -1492,7 +1478,7 @@
       const clientId = existingProfile.clientId || makeClientId();
       const submittedAt = new Date().toISOString();
       profileSubmitButton.disabled = true;
-      profileSubmitButton.textContent = 'သိမ်းဆည်းနေပါသည်…';
+      profileSubmitButton.textContent = t('သိမ်းဆည်းနေပါသည်…');
 
       try {
         const result = await saveProfile(profile);
@@ -1510,7 +1496,7 @@
       window.dispatchEvent(new Event('dailywage-profile-saved'));
       profileIsRequired = false;
         closeProfileEditor();
-        showProfileToast('ကိုယ်ရေးအချက်အလက်ကို Daily Wage အကောင့်တွင် လုံခြုံစွာ သိမ်းဆည်းပြီးပါပြီ။');
+        showProfileToast(t('ကိုယ်ရေးအချက်အလက်ကို Daily Wage အကောင့်တွင် လုံခြုံစွာ သိမ်းဆည်းပြီးပါပြီ။'));
       } catch (error) {
         const localDraft = {
           ...profile,
@@ -1521,10 +1507,10 @@
         };
         writeStoredProfile(localDraft);
         updateUserCard(localDraft);
-        showProfileError(`ဤစက်တွင် မူကြမ်းသိမ်းထားသော်လည်း Firebase သို့ မပို့နိုင်ပါ။ အမှား: ${error.message}`);
+        showProfileError(t('ဤစက်တွင် မူကြမ်းသိမ်းထားသော်လည်း Firebase သို့ မပို့နိုင်ပါ။ အမှား: {error}', { error: error.message }));
       } finally {
         profileSubmitButton.disabled = false;
-        profileSubmitButton.textContent = 'သိမ်းဆည်းပြီး ဆက်သွားရန်';
+        profileSubmitButton.textContent = t('သိမ်းဆည်းပြီး ဆက်သွားရန်');
       }
     });
 
@@ -1541,11 +1527,26 @@
 
     const savedProfile = readStoredProfile();
     updateUserCard(savedProfile);
+    window.addEventListener('dailywage-language-changed', () => {
+      updateUserCard(readStoredProfile());
+      showProfileError(profileFormError.dataset.sourceMessage || '');
+      if (profileToast.classList.contains('is-visible')) {
+        profileToast.textContent = t(profileToast.dataset.sourceMessage || '');
+      }
+      if (profileBackdrop.classList.contains('is-open')) {
+        profileIntro.textContent = profileIsRequired
+          ? t('အက်ပ်ကို အသုံးပြုရန် ကိုယ်ရေးအချက်အလက်ကို အရင်ဖြည့်ပါ။ * ပါသောအကွက်များကို မဖြစ်မနေ ဖြည့်ရပါမည်။')
+          : t('ကိုယ်ရေးအချက်အလက်ကို ပြင်ဆင်ပါ။ ပြောင်းလဲမှုများကို Daily Wage အကောင့်တွင် လုံခြုံစွာ သိမ်းဆည်းပါမည်။');
+        profileSubmitButton.textContent = t(profileSubmitButton.disabled ? 'သိမ်းဆည်းနေပါသည်…' : 'သိမ်းဆည်းပြီး ဆက်သွားရန်');
+      }
+    });
     if (!savedProfile || savedProfile.syncStatus !== 'synced') {
       openProfileEditor(true);
     }
   </script>
-  <script>
+  <script type="module">
+    import { getLanguage, t } from './i18n.js';
+
     (() => {
       const STORAGE_KEY = 'dailyWageSmartPlanner';
       const form = document.getElementById('smartWageForm');
@@ -1566,13 +1567,14 @@
       };
 
       function formatMoney(value, currency) {
+        const locale = getLanguage() === 'en' ? 'en-US' : 'my-MM';
         try {
-          return new Intl.NumberFormat('my-MM', {
+          return new Intl.NumberFormat(locale, {
             style: 'currency', currency,
             maximumFractionDigits: currency === 'MMK' ? 0 : 2
           }).format(value);
         } catch (error) {
-          return `${Number(value).toLocaleString('my-MM')} ${currency}`;
+          return `${Number(value).toLocaleString(locale)} ${currency}`;
         }
       }
 
@@ -1608,10 +1610,14 @@
         output.monthly.textContent = formatMoney(monthlyIncome, currency);
         output.net.textContent = formatMoney(monthlyNet, currency);
         output.goal.textContent = savingsGoal === 0
-          ? 'ရည်မှန်းချက် ထည့်ပါ'
+          ? t('ရည်မှန်းချက် ထည့်ပါ')
           : monthlyNet > 0
-            ? `${Math.ceil(savingsGoal / monthlyNet).toLocaleString('my-MM')} လခန့်`
-            : 'လစဉ်ကျန်ငွေ မလုံလောက်ပါ';
+            ? t('{months} လခန့်', { months: Math.ceil(savingsGoal / monthlyNet).toLocaleString(localeForNumbers()) })
+            : t('လစဉ်ကျန်ငွေ မလုံလောက်ပါ');
+      }
+
+      function localeForNumbers() {
+        return getLanguage() === 'en' ? 'en-US' : 'my-MM';
       }
 
       try {
@@ -1627,6 +1633,7 @@
 
       form.addEventListener('input', calculate);
       form.addEventListener('change', calculate);
+      window.addEventListener('dailywage-language-changed', calculate);
       document.getElementById('smartWageReset').addEventListener('click', () => {
         form.reset();
         try { localStorage.removeItem(STORAGE_KEY); } catch (error) { /* Ignore blocked storage. */ }

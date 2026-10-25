@@ -2,6 +2,7 @@ import {
   auth, db, collection, doc, getDoc, getDocs, onAuthStateChanged,
   query, runTransaction, serverTimestamp, where
 } from './firebase.js';
+import { getLanguage, t } from './i18n.js';
 
 const POINTS_PER_BAHT = 100;
 const MIN_WITHDRAWAL_BAHT = 10;
@@ -88,18 +89,19 @@ function asDate(timestamp) {
 function displayDate(timestamp) {
   const date = asDate(timestamp);
   if (!date) return '—';
-  return new Intl.DateTimeFormat('my-MM', {
+  return new Intl.DateTimeFormat(getLanguage() === 'en' ? 'en-US' : 'my-MM', {
     timeZone: TIME_ZONE, year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
   }).format(date);
 }
 
 function statusLabel(status) {
-  return ({
+  const label = ({
     pending: 'တောင်းဆိုမှု လက်ခံရရှိပြီး',
     processing: 'စစ်ဆေးနေဆဲ',
     paid: 'ငွေလွှဲပြီး',
     rejected: 'ပယ်ဖျက်ပြီး · အမှတ်ပြန်အမ်းပြီး'
   })[status] || 'အခြေအနေ မသိရပါ';
+  return t(label);
 }
 
 function escapeHtml(value) {
@@ -109,13 +111,15 @@ function escapeHtml(value) {
 }
 
 function showNotice(message, type = 'info') {
-  rewardNotice.textContent = message;
+  rewardNotice.dataset.sourceMessage = message;
+  rewardNotice.textContent = t(message);
   rewardNotice.dataset.type = type;
   rewardNotice.hidden = !message;
 }
 
 function setWithdrawalError(message) {
-  withdrawalError.textContent = message;
+  withdrawalError.dataset.sourceMessage = message;
+  withdrawalError.textContent = t(message);
   withdrawalError.hidden = !message;
 }
 
@@ -139,9 +143,9 @@ function withdrewToday() {
 function renderWallet() {
   if (!currentWallet) {
     pointBalance.textContent = '—';
-    bahtEquivalent.textContent = 'ကိုယ်ရေးအချက်အလက် သိမ်းဆည်းပြီးမှ အမှတ်များ ပြသပါမည်';
+    bahtEquivalent.textContent = t('ကိုယ်ရေးအချက်အလက်ကို သိမ်းဆည်းပြီးမှ အမှတ်များ ပြသပါမည်');
     streakValue.textContent = '0 / 7';
-    checkinMessage.textContent = 'ကိုယ်ရေးအချက်အလက်ကို သိမ်းဆည်းပြီးနောက် ထပ်မံဝင်ရောက်ပါ။';
+    checkinMessage.textContent = t('ကိုယ်ရေးအချက်အလက်ကို သိမ်းဆည်းပြီးနောက် ထပ်မံဝင်ရောက်ပါ။');
     checkinButton.disabled = true;
     withdrawButton.disabled = true;
     return;
@@ -150,18 +154,21 @@ function renderWallet() {
   const points = Number(currentWallet.pointsBalance || 0);
   const streak = Number(currentWallet.streakCount || 0);
   pointBalance.textContent = points.toLocaleString('en-US');
-  bahtEquivalent.textContent = `${(points / POINTS_PER_BAHT).toLocaleString('en-US')} ဘတ်တန်ဖိုး`;
+  bahtEquivalent.textContent = t('{baht} ဘတ်တန်ဖိုး', { baht: (points / POINTS_PER_BAHT).toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM') });
   streakValue.textContent = `${streak} / ${CHECKIN_CYCLE_DAYS}`;
   document.getElementById('rewardProgressFill').style.width = `${Math.min(100, (streak / CHECKIN_CYCLE_DAYS) * 100)}%`;
 
   if (isCheckedInToday()) {
-    checkinMessage.textContent = 'ဒီနေ့ ဝင်ရောက်မှု မှတ်တမ်းတင်ပြီးပါပြီ။ နောက်တစ်ကြိမ်ကို ဘန်ကောက်စံတော်ချိန်အရ မနက်ဖြန်မှ ပြုလုပ်နိုင်ပါမည်။';
+    checkinMessage.textContent = t('ဒီနေ့ ဝင်ရောက်မှု မှတ်တမ်းတင်ပြီးပါပြီ။ နောက်တစ်ကြိမ်ကို ဘန်ကောက်စံတော်ချိန်အရ မနက်ဖြန်မှ ပြုလုပ်နိုင်ပါမည်။');
   } else if (deviceClaimedByAnotherUser) {
-    checkinMessage.textContent = 'ဒီနေ့ ဤဖုန်း/browser မှ ဝင်ရောက်မှုကို အခြားအကောင့်ဖြင့် ရယူပြီးပါပြီ။ မနက်ဖြန်မှ ပြန်ဝင်နိုင်ပါမည်။';
+    checkinMessage.textContent = t('ဒီနေ့ ဤဖုန်း/browser မှ ဝင်ရောက်မှုကို အခြားအကောင့်ဖြင့် ရယူပြီးပါပြီ။ မနက်ဖြန်မှ ပြန်ဝင်နိုင်ပါမည်။');
   } else if (!installationId) {
-    checkinMessage.textContent = 'ဤ browser တွင် လုံခြုံသောစက် ID ကို သိမ်းမရပါ။ စက်၏ storage ကို ဖွင့်ပြီး ပြန်စမ်းပါ။';
+    checkinMessage.textContent = t('ဤ browser တွင် လုံခြုံသောစက် ID ကို သိမ်းမရပါ။ စက်၏ storage ကို ဖွင့်ပြီး ပြန်စမ်းပါ။');
   } else {
-    checkinMessage.textContent = `ဤဖုန်း/browser တပ်ဆင်မှုမှ တစ်နေ့တစ်ကြိမ်သာ ဝင်ရောက်နိုင်ပါသည်။ ${CHECKIN_CYCLE_DAYS} ရက်ဆက်တိုက် ဝင်ရောက်ပါက ${CHECKIN_REWARD_POINTS.toLocaleString('en-US')} မှတ် ရရှိပါမည်။`;
+    checkinMessage.textContent = t('ဤဖုန်း/browser တပ်ဆင်မှုမှ တစ်နေ့တစ်ကြိမ်သာ ဝင်ရောက်နိုင်ပါသည်။ {days} ရက်ဆက်တိုက် ဝင်ရောက်ပါက {points} မှတ် ရရှိပါမည်။', {
+      days: CHECKIN_CYCLE_DAYS.toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM'),
+      points: CHECKIN_REWARD_POINTS.toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM')
+    });
   }
   checkinButton.disabled = isBusy || isCheckedInToday() || deviceClaimedByAnotherUser || !currentUser || !installationId;
   withdrawButton.disabled = isBusy || withdrewToday() || points < MIN_WITHDRAWAL_BAHT * POINTS_PER_BAHT || !currentUser;
@@ -170,7 +177,7 @@ function renderWallet() {
 async function renderHistory() {
   const user = currentUser;
   if (!user) {
-    historyList.innerHTML = '<p class="reward-empty">ကိုယ်ရေးအချက်အလက်ကို သိမ်းဆည်းပြီးနောက် ငွေထုတ်တောင်းဆိုမှုမှတ်တမ်းကို ကြည့်နိုင်ပါသည်။</p>';
+    historyList.innerHTML = `<p class="reward-empty">${t('ကိုယ်ရေးအချက်အလက်ကို သိမ်းဆည်းပြီးနောက် ငွေထုတ်တောင်းဆိုမှုမှတ်တမ်းကို ကြည့်နိုင်ပါသည်။')}</p>`;
     return;
   }
   try {
@@ -182,7 +189,7 @@ async function renderHistory() {
     const entries = result.docs.map(item => ({ id: item.id, ...item.data() }))
       .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
     if (!entries.length) {
-      historyList.innerHTML = '<p class="reward-empty">ယခုအချိန်တွင် ငွေထုတ်တောင်းဆိုမှု မရှိသေးပါ။</p>';
+      historyList.innerHTML = `<p class="reward-empty">${t('ယခုအချိန်တွင် ငွေထုတ်တောင်းဆိုမှု မရှိသေးပါ။')}</p>`;
       return;
     }
     historyList.innerHTML = entries.map(entry => {
@@ -190,14 +197,14 @@ async function renderHistory() {
       const masked = digits ? `•••• ${digits.slice(-4)}` : '—';
       const statusClass = ['pending', 'processing', 'paid', 'rejected'].includes(entry.status) ? entry.status : 'unknown';
       return `<article class="withdrawal-history-item">
-        <div class="withdrawal-history-top"><strong>${Number(entry.amountBaht || 0).toLocaleString('en-US')} ဘတ်</strong><span class="withdrawal-status ${statusClass}">${statusLabel(entry.status)}</span></div>
-        <div class="withdrawal-history-meta">TrueMoney ပိုက်ဆံအိတ် · ${masked} · ${displayDate(entry.createdAt)}</div>
-        <div class="withdrawal-history-points">${Number(entry.pointsRequested || 0).toLocaleString('en-US')} မှတ်</div>
-        ${entry.adminNote ? `<div class="withdrawal-history-note">စီမံခန့်ခွဲသူ၏ မှတ်ချက်: ${escapeHtml(entry.adminNote)}</div>` : ''}
+        <div class="withdrawal-history-top"><strong>${t('{amount} ဘတ်', { amount: Number(entry.amountBaht || 0).toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM') })}</strong><span class="withdrawal-status ${statusClass}">${statusLabel(entry.status)}</span></div>
+        <div class="withdrawal-history-meta">${t('TrueMoney ပိုက်ဆံအိတ်')} · ${masked} · ${displayDate(entry.createdAt)}</div>
+        <div class="withdrawal-history-points">${t('{points} မှတ်', { points: Number(entry.pointsRequested || 0).toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM') })}</div>
+        ${entry.adminNote ? `<div class="withdrawal-history-note">${t('စီမံခန့်ခွဲသူ၏ မှတ်ချက်:')} ${escapeHtml(entry.adminNote)}</div>` : ''}
       </article>`;
     }).join('');
   } catch (error) {
-    historyList.innerHTML = '<p class="reward-empty">မှတ်တမ်းကို ယခုဖတ်မရပါ။ စာမျက်နှာကို ပြန်ဖွင့်ပါ။</p>';
+    historyList.innerHTML = `<p class="reward-empty">${t('မှတ်တမ်းကို ယခုဖတ်မရပါ။ စာမျက်နှာကို ပြန်ဖွင့်ပါ။')}</p>`;
   }
 }
 
@@ -216,12 +223,12 @@ async function bootstrapRewards(user) {
   const userId = user.uid;
   currentWallet = null;
   renderWallet();
-  historyList.innerHTML = '<p class="reward-empty">ငွေထုတ်တောင်းဆိုမှုမှတ်တမ်းကို ဖတ်နေပါသည်…</p>';
+  historyList.innerHTML = `<p class="reward-empty">${t('ငွေထုတ်တောင်းဆိုမှုမှတ်တမ်းကို ဖတ်နေပါသည်…')}</p>`;
   try {
     const profileSnapshot = await getDoc(doc(db, 'userProfiles', user.uid));
     if (currentUser?.uid !== userId) return;
     if (!profileSnapshot.exists()) {
-      checkinMessage.textContent = 'ဆုကြေးအသုံးပြုရန် ကိုယ်ရေးအချက်အလက်ကို အရင်ဖြည့်ပြီး သိမ်းဆည်းပါ။';
+      checkinMessage.textContent = t('ဆုကြေးအသုံးပြုရန် ကိုယ်ရေးအချက်အလက်ကို အရင်ဖြည့်ပြီး သိမ်းဆည်းပါ။');
       return;
     }
     const walletRef = doc(db, 'rewardWallets', user.uid);
@@ -259,7 +266,7 @@ async function bootstrapRewards(user) {
     if (currentUser?.uid !== userId) return;
     currentWallet = null;
     renderWallet();
-    showNotice('အမှတ်စာရင်းကို ဖတ်မရပါ။ အင်တာနက်နှင့် Firebase ဝင်ခွင့်ကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ။', 'error');
+    showNotice(t('အမှတ်စာရင်းကို ဖတ်မရပါ။ အင်တာနက်နှင့် Firebase ဝင်ခွင့်ကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ။'), 'error');
   }
 }
 
@@ -307,15 +314,15 @@ checkinButton.addEventListener('click', async () => {
     });
     await bootstrapRewards(currentUser);
     showNotice(result.earned
-      ? `ဂုဏ်ယူပါတယ်။ ${CHECKIN_REWARD_POINTS.toLocaleString('en-US')} မှတ် ထပ်ရရှိပါပြီ။`
-      : 'ဒီနေ့ ဝင်ရောက်မှု အောင်မြင်ပါသည်။ နောက်ရက်များတွင် ဆက်လက်ဝင်ရောက်ပါ။', 'success');
+      ? t('ဂုဏ်ယူပါတယ်။ {points} မှတ် ထပ်ရရှိပါပြီ။', { points: CHECKIN_REWARD_POINTS.toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM') })
+      : t('ဒီနေ့ ဝင်ရောက်မှု အောင်မြင်ပါသည်။ နောက်ရက်များတွင် ဆက်လက်ဝင်ရောက်ပါ။'), 'success');
   } catch (error) {
     await bootstrapRewards(currentUser);
     showNotice(error.message === 'DEVICE_ALREADY_CHECKED_IN'
-      ? 'ဒီနေ့ ဤဖုန်း/browser မှ ဝင်ရောက်မှု ပြုလုပ်ပြီးပါပြီ။'
+      ? t('ဒီနေ့ ဤဖုန်း/browser မှ ဝင်ရောက်မှု ပြုလုပ်ပြီးပါပြီ။')
       : error.message === 'ALREADY_CHECKED_IN'
-        ? 'ဘန်ကောက်စံတော်ချိန်အရ ဒီနေ့ ဝင်ရောက်မှု ပြုလုပ်ပြီးပါပြီ။'
-      : 'ဒီနေ့ ဝင်ရောက်မှုကို သိမ်းမရပါ။ ယနေ့အတွက် မှတ်တမ်းတင်ပြီးသားဖြစ်ခြင်း သို့မဟုတ် အင်တာနက်ပြတ်တောက်ခြင်း ဖြစ်နိုင်ပါသည်။', 'error');
+        ? t('ဘန်ကောက်စံတော်ချိန်အရ ဒီနေ့ ဝင်ရောက်မှု ပြုလုပ်ပြီးပါပြီ။')
+      : t('ဒီနေ့ ဝင်ရောက်မှုကို သိမ်းမရပါ။ ယနေ့အတွက် မှတ်တမ်းတင်ပြီးသားဖြစ်ခြင်း သို့မဟုတ် အင်တာနက်ပြတ်တောက်ခြင်း ဖြစ်နိုင်ပါသည်။'), 'error');
   } finally {
     setBusy(false);
     renderWallet();
@@ -328,7 +335,7 @@ function openWithdrawalDialog() {
   withdrawalAmount.min = String(MIN_WITHDRAWAL_BAHT);
   withdrawalAmount.max = String(maximumBaht);
   withdrawalAmount.value = String(MIN_WITHDRAWAL_BAHT);
-  withdrawalPoints.textContent = `${(MIN_WITHDRAWAL_BAHT * POINTS_PER_BAHT).toLocaleString('en-US')} မှတ်`;
+  withdrawalPoints.textContent = t('{points} မှတ်', { points: (MIN_WITHDRAWAL_BAHT * POINTS_PER_BAHT).toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM') });
   walletNameInput.value = '';
   walletNumberInput.value = '';
   withdrawalConsent.checked = false;
@@ -350,10 +357,11 @@ cancelWithdrawalButton.addEventListener('click', closeWithdrawalDialog);
 withdrawalDialog.addEventListener('click', event => {
   if (event.target === withdrawalDialog) closeWithdrawalDialog();
 });
-withdrawalAmount.addEventListener('input', () => {
+function updateWithdrawalPoints() {
   const amount = Math.max(0, Number(withdrawalAmount.value || 0));
-  withdrawalPoints.textContent = `${Math.round(amount * POINTS_PER_BAHT).toLocaleString('en-US')} မှတ်`;
-});
+  withdrawalPoints.textContent = t('{points} မှတ်', { points: Math.round(amount * POINTS_PER_BAHT).toLocaleString(getLanguage() === 'en' ? 'en-US' : 'my-MM') });
+}
+withdrawalAmount.addEventListener('input', updateWithdrawalPoints);
 
 withdrawalForm.addEventListener('submit', async event => {
   event.preventDefault();
@@ -386,7 +394,8 @@ withdrawalForm.addEventListener('submit', async event => {
   }
 
   setBusy(true);
-  submitWithdrawalButton.textContent = 'ပေးပို့နေပါသည်…';
+  submitWithdrawalButton.dataset.isSubmitting = 'true';
+  submitWithdrawalButton.textContent = t('ပေးပို့နေပါသည်…');
   try {
     const requestRef = doc(collection(db, 'withdrawalRequests'));
     const walletRef = doc(db, 'rewardWallets', currentUser.uid);
@@ -432,15 +441,16 @@ withdrawalForm.addEventListener('submit', async event => {
     });
     closeWithdrawalDialog(true);
     await bootstrapRewards(currentUser);
-    showNotice('တောင်းဆိုမှုကို စီမံခန့်ခွဲသူထံ ပေးပို့ပြီးပါပြီ။ စီမံခန့်ခွဲသူက စစ်ဆေးပြီး ၂၄ နာရီအတွင်း TrueMoney သို့ ကိုယ်တိုင်ငွေလွှဲရန် ရည်ရွယ်ထားပါသည်။', 'success');
+    showNotice(t('တောင်းဆိုမှုကို စီမံခန့်ခွဲသူထံ ပေးပို့ပြီးပါပြီ။ စီမံခန့်ခွဲသူက စစ်ဆေးပြီး ၂၄ နာရီအတွင်း TrueMoney သို့ ကိုယ်တိုင်ငွေလွှဲရန် ရည်ရွယ်ထားပါသည်။'), 'success');
   } catch (error) {
     await bootstrapRewards(currentUser);
     setWithdrawalError(error.message === 'ALREADY_WITHDREW_TODAY'
-      ? 'ဘန်ကောက်စံတော်ချိန်အရ ဒီနေ့အတွက် ငွေထုတ်တောင်းဆိုမှု ပြုလုပ်ပြီးပါပြီ။'
-      : (error.message || 'တောင်းဆိုမှု မပို့နိုင်ပါ။ ထပ်ကြိုးစားပါ။'));
+      ? t('ဘန်ကောက်စံတော်ချိန်အရ ဒီနေ့အတွက် ငွေထုတ်တောင်းဆိုမှု ပြုလုပ်ပြီးပါပြီ။')
+      : t(error.message || 'တောင်းဆိုမှု မပို့နိုင်ပါ။ ထပ်ကြိုးစားပါ။'));
   } finally {
     setBusy(false);
-    submitWithdrawalButton.textContent = 'ငွေထုတ်ရန် တောင်းဆိုမည်';
+    submitWithdrawalButton.dataset.isSubmitting = 'false';
+    submitWithdrawalButton.textContent = t('ငွေထုတ်ရန် တောင်းဆိုမည်');
     renderWallet();
   }
 });
@@ -448,4 +458,12 @@ withdrawalForm.addEventListener('submit', async event => {
 onAuthStateChanged(auth, user => { void bootstrapRewards(user); });
 window.addEventListener('dailywage-profile-saved', () => {
   if (auth.currentUser) void bootstrapRewards(auth.currentUser);
+});
+window.addEventListener('dailywage-language-changed', () => {
+  renderWallet();
+  void renderHistory();
+  updateWithdrawalPoints();
+  showNotice(rewardNotice.dataset.sourceMessage || '', rewardNotice.dataset.type || 'info');
+  setWithdrawalError(withdrawalError.dataset.sourceMessage || '');
+  submitWithdrawalButton.textContent = t(submitWithdrawalButton.dataset.isSubmitting === 'true' ? 'ပေးပို့နေပါသည်…' : 'ငွေထုတ်ရန် တောင်းဆိုမည်');
 });
